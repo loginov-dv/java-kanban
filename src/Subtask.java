@@ -8,9 +8,10 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        String result = super.toString();
-        // подстрока без конечной фигурной скобки
-        result = result.substring(0, result.length() - 2);
+        String resultSuper = super.toString();
+        String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
+        String result = "Subtask" + contentSuper;
+
         if (epic != null) {
             result += ", epic.id=" + epic.getId() + "}";
         } else {

@@ -19,16 +19,17 @@ public class Epic extends Task {
         return subtasks;
     }
 
-    /*@Override
-    private void setStatus(TaskStatus status) {
+    public void addSubtask(Subtask subtask) {
+        subtasks.add(subtask);
+    }
 
-    }*/
 
     @Override
     public String toString() {
-        String result = super.toString();
-        // подстрока без конечной фигурной скобки
-        result = result.substring(0, result.length() - 2);
+        String resultSuper = super.toString();
+        String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
+        String result = "Epic" + contentSuper;
+
         if (!subtasks.isEmpty()) {
             result += ", subtasks.size=" + subtasks.size() + "}";
         } else {
