@@ -53,4 +53,22 @@ public class Task {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString() {
+        String result = "Task{id=" + id +", ";
+        if (name != null) {
+            result += "name=" + name + ", ";
+        } else {
+            result += "name=null, ";
+        }
+        if (description != null) {
+            result += "description.length=" + description.length() + ", ";
+        } else {
+            result += "description=null, ";
+        }
+        result += "status=" + status.name() + "}";
+
+        return result;
+    }
 }
