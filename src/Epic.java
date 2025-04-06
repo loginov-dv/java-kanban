@@ -3,6 +3,8 @@ import java.util.ArrayList;
 public class Epic extends Task {
     private ArrayList<Subtask> subtasks;
 
+
+
     Epic(int id, String name, String description, ArrayList<Subtask> subtasks) {
         this(id, name,description);
         this.subtasks = subtasks;
@@ -16,6 +18,11 @@ public class Epic extends Task {
     public ArrayList<Subtask> getSubtasks() {
         return subtasks;
     }
+
+    /*@Override
+    private void setStatus(TaskStatus status) {
+
+    }*/
 
     @Override
     public String toString() {
