@@ -8,7 +8,7 @@ public class TaskManager {
     private final HashMap<Integer, Subtask> subtasks;
     //private static int ids = 0;
 
-    TaskManager() {
+    public TaskManager() {
         //tasks = new ArrayList<>();
         basicTasks = new HashMap<>();
         epicTasks = new HashMap<>();
