@@ -1,5 +1,6 @@
 import java.util.Objects;
 
+// Базовый класс для описания задачи
 public class Task {
     private String name;
     private String description;
@@ -46,7 +47,7 @@ public class Task {
         if (this == obj) return true;
         if (obj == null || this.getClass() != obj.getClass()) return false;
         Task task = (Task)obj;
-        return id == task.id /*|| (name.equals(task.name) && description.equals(task.description))*/;
+        return id == task.id;
     }
 
     @Override

@@ -1,14 +1,8 @@
 import java.util.ArrayList;
 
+// Класс для описания эпика (большой задачи)
 public class Epic extends Task {
-    private ArrayList<Subtask> subtasks;
-
-
-
-    public Epic(int id, String name, String description, ArrayList<Subtask> subtasks) {
-        this(id, name,description);
-        this.subtasks = subtasks;
-    }
+    private final ArrayList<Subtask> subtasks;
 
     public Epic(int id, String name, String description) {
         super(id, name, description);
@@ -22,15 +16,19 @@ public class Epic extends Task {
     public void addSubtask(Subtask subtask) {
         subtasks.add(subtask);
         //subtask.setEpic(this);
+        // Обновляем статус эпика
         updateStatus();
     }
 
     public void removeSubtask(Subtask subtask) {
         subtasks.remove(subtask);
+        // Удаляем ссылку на эпик у подзадачи
         subtask.removeEpic();
+        // Обновляем статус эпика
         updateStatus();
     }
 
+    // Метод для обновления статуса эпика на основе статусов его подзадач
     public void updateStatus() {
         if (subtasks.isEmpty()) {
             setStatus(TaskStatus.NEW);
