@@ -1,3 +1,5 @@
+package ru.yandex.practicum.Tasks;
+
 import java.util.ArrayList;
 
 // Класс для описания эпика (большой задачи)
@@ -9,7 +11,7 @@ public class Epic extends Task {
         subtasks = new ArrayList<>();
     }
 
-    public ArrayList<Subtask> getSubtasks() {
+    public ArrayList<Subtask> getAllSubtasks() {
         return subtasks;
     }
 

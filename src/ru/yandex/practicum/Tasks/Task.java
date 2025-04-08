@@ -1,3 +1,5 @@
+package ru.yandex.practicum.Tasks;
+
 import java.util.Objects;
 
 // Базовый класс для описания задачи

@@ -1,3 +1,7 @@
+package ru.yandex.practicum.TaskManager;
+
+import ru.yandex.practicum.Tasks.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -116,7 +120,7 @@ public class TaskManager {
         if (epic == null) {
             return;
         }
-        for (Subtask subtask : epic.getSubtasks()) {
+        for (Subtask subtask : epic.getAllSubtasks()) {
             removeSubtaskById(subtask.getId());
         }
         epicTasks.remove(id);
@@ -127,7 +131,7 @@ public class TaskManager {
         if (!epicTasks.containsKey(epic.getId())) {
             return null;
         } else {
-            return epic.getSubtasks();
+            return epic.getAllSubtasks();
         }
     }
 }

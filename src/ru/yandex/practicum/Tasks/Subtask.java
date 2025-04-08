@@ -1,3 +1,5 @@
+package ru.yandex.practicum.Tasks;
+
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
     private Epic epic;

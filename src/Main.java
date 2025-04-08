@@ -1,15 +1,20 @@
+import ru.yandex.practicum.TaskManager.TaskManager;
+import ru.yandex.practicum.Tasks.Epic;
+import ru.yandex.practicum.Tasks.Subtask;
+import ru.yandex.practicum.Tasks.Task;
+import ru.yandex.practicum.Tasks.TaskStatus;
+
 import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        /*Task task1 = new Task(1, "Задача", "Описание");
+        /*ru.yandex.practicum.Tasks.Task task1 = new ru.yandex.practicum.Tasks.Task(1, "Задача", "Описание");
         System.out.println(task1);
 
-        Epic epic1 = new Epic(2, "Эпик", "Описание");
-        Subtask subtask1 = new Subtask(3, "Подзадача", "Описание", epic1);
+        ru.yandex.practicum.Tasks.Epic epic1 = new ru.yandex.practicum.Tasks.Epic(2, "Эпик", "Описание");
+        ru.yandex.practicum.Tasks.Subtask subtask1 = new ru.yandex.practicum.Tasks.Subtask(3, "Подзадача", "Описание", epic1);
         epic1.addSubtask(subtask1);
         System.out.println(subtask1);
         System.out.println(epic1);*/
