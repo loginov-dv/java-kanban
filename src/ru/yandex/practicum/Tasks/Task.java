@@ -4,44 +4,36 @@ import java.util.Objects;
 
 // Базовый класс для описания задачи
 public class Task {
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
     private final int id;
-    private TaskStatus status;
+    private final TaskStatus status;
 
-    public Task(int id, String name, String description) {
+    public Task(int id, String name, String description, TaskStatus status) {
         this.id = id;
         this.name = name;
         this.description = description;
-        status = TaskStatus.NEW;
+        this.status = status;
     }
 
+    // Получить имя задачи
     public String getName() {
         return name;
     }
 
+    // Получить описание задачи
     public String getDescription() {
         return description;
     }
 
+    // Получить идентификатор задачи
     public int getId() {
         return id;
     }
 
+    // Получить текущий статус задачи
     public TaskStatus getStatus() {
         return status;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
     }
 
     @Override
@@ -60,6 +52,7 @@ public class Task {
     @Override
     public String toString() {
         String result = "Task{id=" + id +", ";
+
         if (name != null) {
             result += "name=" + name + ", ";
         } else {
@@ -70,6 +63,7 @@ public class Task {
         } else {
             result += "description=null, ";
         }
+
         result += "status=" + status.name() + "}";
 
         return result;

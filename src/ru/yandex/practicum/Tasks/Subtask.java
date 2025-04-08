@@ -4,27 +4,25 @@ package ru.yandex.practicum.Tasks;
 public class Subtask extends Task {
     private Epic epic;
 
-    // Полагаем, что подзадача не существует сама по себе, поэтому в конструктор нужно передать эпик
-    public Subtask(int id, String name, String description, Epic epic) {
-        super(id, name, description);
+    public Subtask(int id, String name, String description, TaskStatus status, Epic epic) {
+        super(id, name, description, status);
         this.epic = epic;
-        // Добавляем подзадачу в эпик
-        epic.addSubtask(this);
     }
 
-    //
-    public void removeEpic() {
+    // Получить эпик
+    public Epic getEpic() {
+        return epic;
+    }
+
+    // Задать эпик
+    public void setEpic(Epic epic) {
+        this.epic = epic;
+    }
+
+    /*public void removeEpic() {
         epic.removeSubtask(this);
         epic = null;
-    }
-
-    @Override
-    public void setStatus(TaskStatus status) {
-        // Изменяем статус подзадачи
-        super.setStatus(status);
-        // Обновляем статус эпика
-        epic.updateStatus();
-    }
+    }*/
 
     @Override
     public String toString() {

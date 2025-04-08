@@ -1,65 +1,53 @@
 package ru.yandex.practicum.Tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
-    private final ArrayList<Subtask> subtasks;
+    private ArrayList<Subtask> subtasks;
 
-    public Epic(int id, String name, String description) {
-        super(id, name, description);
+    public Epic(int id, String name, String description, TaskStatus status) {
+        super(id, name, description, status);
         subtasks = new ArrayList<>();
     }
 
+    public Epic(int id, String name, String description, TaskStatus status, ArrayList<Subtask> subtasks) {
+        this(id, name, description, status);
+        this.subtasks = subtasks;
+    }
+
+    // Получить список всех подзадач
     public ArrayList<Subtask> getAllSubtasks() {
         return subtasks;
     }
 
+    // Добавить новую подзадачу
     public void addSubtask(Subtask subtask) {
+        // Ничего не делаем, если уже есть подзадача с таким идентификатором
+        if (subtasks.contains(subtask)) {
+            return;
+        }
+
         subtasks.add(subtask);
-        //subtask.setEpic(this);
-        // Обновляем статус эпика
-        updateStatus();
     }
 
+    // Удалить подзадачу
     public void removeSubtask(Subtask subtask) {
+        // Сравнение по equals даст true, т.к. id подзадач одинаковы
         subtasks.remove(subtask);
-        // Удаляем ссылку на эпик у подзадачи
-        subtask.removeEpic();
-        // Обновляем статус эпика
-        updateStatus();
     }
 
-    // Метод для обновления статуса эпика на основе статусов его подзадач
-    public void updateStatus() {
-        if (subtasks.isEmpty()) {
-            setStatus(TaskStatus.NEW);
-        } else {
-            int newSubtasks = 0;
-            int doneSubtasks = 0;
+    // Обновить подзадачу
+    public void updateSubtask(Subtask updatedSubtask) {
+        // Сравнение по equals даст true, т.к. id подзадач одинаковы
+        int subtaskIndex = subtasks.indexOf(updatedSubtask);
 
-            for (Task subtask : subtasks) {
-                switch (subtask.getStatus()) {
-                    case NEW:
-                        newSubtasks++;
-                        break;
-                    case DONE:
-                        doneSubtasks++;
-                        break;
-                }
-            }
-
-            if (newSubtasks == subtasks.size()) {
-                setStatus(TaskStatus.NEW);
-            } else if (doneSubtasks == subtasks.size()) {
-                setStatus(TaskStatus.DONE);
-            } else {
-                setStatus(TaskStatus.IN_PROGRESS);
-            }
+        // Если такой подзадачи нет, то нечего обновлять
+        if (subtaskIndex >= 0) {
+            subtasks.set(subtaskIndex, updatedSubtask);
         }
     }
-
-    // TODO: setStatus?
 
     @Override
     public String toString() {

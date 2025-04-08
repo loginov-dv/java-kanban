@@ -23,45 +23,76 @@ public class Main {
 
         System.out.println("***** Creating tasks *****\n");
 
-        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание");
+        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW);
+        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW);
         taskManager.addBasicTask(task1);
-        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание");
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание");
-        taskManager.addEpicTask(epic1);
-        Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание", epic1);
+        printTasks(taskManager.getAllBasicTasks());
+        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
+        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
+        Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание",
+                TaskStatus.NEW, epic1);
+        Subtask subtask21 = new Subtask(taskManager.nextId(), "Подзадача 21", "Описание",
+                TaskStatus.NEW, epic2);
         taskManager.addSubtask(subtask11);
-
-        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание");
-        taskManager.addEpicTask(epic2);
-        Subtask subtask21 = new Subtask(taskManager.nextId(), "Подзадача 21", "Описание", epic2);
         taskManager.addSubtask(subtask21);
-        Subtask subtask22 = new Subtask(taskManager.nextId(), "Подзадача 22", "Описание", epic2);
-        taskManager.addSubtask(subtask22);
 
         printTasks(taskManager.getAllBasicTasks());
         printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
         printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
 
-        System.out.println("\n***** Doing some stuff *****\n");
-
-        task1.setStatus(TaskStatus.DONE);
-        subtask11.setStatus(TaskStatus.DONE);
-        subtask21.setStatus(TaskStatus.IN_PROGRESS);
-
-        printTasks(taskManager.getAllBasicTasks());
-        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
-        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
-
-        System.out.println("\n***** Doing some stuff again *****\n");
-
-        taskManager.removeBasicTaskById(task2.getId());
-        taskManager.removeEpicTaskById(epic2.getId());
+        epic1 = taskManager.getEpicById(1);
+        Subtask subtask11new = new Subtask(subtask11.getId(), subtask11.getName(), subtask11.getDescription(), TaskStatus.DONE, epic1);
+        taskManager.updateSubtask(subtask11new);
 
         printTasks(taskManager.getAllBasicTasks());
         printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
         printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
+        epic1 = taskManager.getEpicById(1);
+        Subtask subtask12 = new Subtask(taskManager.nextId(), "Подзадача 12", "Описание",
+                TaskStatus.IN_PROGRESS, epic1);
+        taskManager.addSubtask(subtask12);
+
+        printTasks(taskManager.getAllBasicTasks());
+        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
+        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
+        epic1 = taskManager.getEpicById(1);
+        Subtask subtask13 = new Subtask(taskManager.nextId(), "Подзадача 13", "Описание",
+                TaskStatus.DONE, epic1);
+        taskManager.addSubtask(subtask13);
+
+        printTasks(taskManager.getAllBasicTasks());
+        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
+        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
+        taskManager.removeSubtaskById(7);
+
+        printTasks(taskManager.getAllBasicTasks());
+        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
+        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
+        taskManager.removeEpicById(2);
+
+        printTasks(taskManager.getAllBasicTasks());
+        printTasks(new ArrayList<Task>(taskManager.getAllEpics()));
+        printTasks(new ArrayList<Task>(taskManager.getAllSubtasks()));
+        System.out.println();
+
     }
 
     private static void printTasks(ArrayList<Task> tasks) {
