@@ -4,11 +4,16 @@ import java.util.Objects;
 
 // Базовый класс для описания задачи
 public class Task {
+    // Название
     private final String name;
+    // Описание
     private final String description;
+    // Уникальный идентификационный номер задачи
     private final int id;
+    // Статус
     private final TaskStatus status;
 
+    // Конструктор класса Task
     public Task(int id, String name, String description, TaskStatus status) {
         this.id = id;
         this.name = name;
@@ -36,6 +41,7 @@ public class Task {
         return status;
     }
 
+    // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -53,18 +59,9 @@ public class Task {
     public String toString() {
         String result = "Task{id=" + id +", ";
 
-        if (name != null) {
-            result += "name=" + name + ", ";
-        } else {
-            result += "name=null, ";
-        }
-        if (description != null) {
-            result += "description.length=" + description.length() + ", ";
-        } else {
-            result += "description=null, ";
-        }
-
-        result += "status=" + status.name() + "}";
+        result += name == null ? "name=null, " : ("name=" + name + ", ");
+        result += description == null ? "description=null, " : ("description.length=" + description.length() + ", ");
+        result += status == null ? "status=null}" : ("status=" + status.name() + "}");
 
         return result;
     }

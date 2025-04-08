@@ -1,17 +1,18 @@
 package ru.yandex.practicum.Tasks;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
+    // Подзадачи, входящие в эпик
     private ArrayList<Subtask> subtasks;
 
+    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status) {
         super(id, name, description, status);
         subtasks = new ArrayList<>();
     }
-
+    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, ArrayList<Subtask> subtasks) {
         this(id, name, description, status);
         this.subtasks = subtasks;
@@ -24,7 +25,7 @@ public class Epic extends Task {
 
     // Добавить новую подзадачу
     public void addSubtask(Subtask subtask) {
-        // Ничего не делаем, если уже есть подзадача с таким идентификатором
+        // Если уже есть подзадача с таким идентификатором, то ничего не делаем
         if (subtasks.contains(subtask)) {
             return;
         }
@@ -34,16 +35,14 @@ public class Epic extends Task {
 
     // Удалить подзадачу
     public void removeSubtask(Subtask subtask) {
-        // Сравнение по equals даст true, т.к. id подзадач одинаковы
         subtasks.remove(subtask);
     }
 
     // Обновить подзадачу
     public void updateSubtask(Subtask updatedSubtask) {
-        // Сравнение по equals даст true, т.к. id подзадач одинаковы
+        // Обновляем, если есть подзадача с таким же id
         int subtaskIndex = subtasks.indexOf(updatedSubtask);
 
-        // Если такой подзадачи нет, то нечего обновлять
         if (subtaskIndex >= 0) {
             subtasks.set(subtaskIndex, updatedSubtask);
         }
@@ -54,12 +53,7 @@ public class Epic extends Task {
         String resultSuper = super.toString();
         String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
         String result = "Epic" + contentSuper;
-
-        if (!subtasks.isEmpty()) {
-            result += ", subtasks.size=" + subtasks.size() + "}";
-        } else {
-            result += ", subtasks=empty}";
-        }
+        result += subtasks.isEmpty() ? ", subtasks=empty}" : (", subtasks.size=" + subtasks.size() + "}") ;
 
         return result;
     }
