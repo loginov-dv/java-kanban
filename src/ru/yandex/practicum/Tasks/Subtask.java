@@ -2,23 +2,18 @@ package ru.yandex.practicum.Tasks;
 
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
-    // Эпик, в рамках которого выполняется задача
-    private Epic epic;
+    // Идентификатор эпика, в рамках которого выполняется задача
+    private final Integer epicID;
 
     // Конструктор класса Subtask
-    public Subtask(int id, String name, String description, TaskStatus status, Epic epic) {
+    public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
         super(id, name, description, status);
-        this.epic = epic;
+        this.epicID = epicID;
     }
 
     // Получить эпик
-    public Epic getEpic() {
-        return epic;
-    }
-
-    // Задать эпик
-    public void setEpic(Epic epic) {
-        this.epic = epic;
+    public Integer getEpicID() {
+        return epicID;
     }
 
     @Override
@@ -26,7 +21,7 @@ public class Subtask extends Task {
         String resultSuper = super.toString();
         String fieldsOfSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
         String result = "Subtask" + fieldsOfSuper;
-        result += epic == null ? ", epic=null}" : (", epic.id=" + epic.getId() + "}");
+        result += epicID == null ? ", epic=null}" : (", epic.id=" + epicID + "}");
 
         return result;
     }
