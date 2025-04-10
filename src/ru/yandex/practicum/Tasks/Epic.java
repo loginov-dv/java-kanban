@@ -1,11 +1,12 @@
 package ru.yandex.practicum.Tasks;
 
 import java.util.ArrayList;
+import java.util.List;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
     // Идентификаторы подзадач, входящих в эпик
-    private ArrayList<Integer> subtaskIDs;
+    private List<Integer> subtaskIDs;
 
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status) {
@@ -13,14 +14,34 @@ public class Epic extends Task {
         subtaskIDs = new ArrayList<>();
     }
     // Конструктор класса Epic
-    public Epic(int id, String name, String description, TaskStatus status, ArrayList<Integer> subtaskIDs) {
+    public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
         this(id, name, description, status);
         this.subtaskIDs = subtaskIDs;
     }
 
     // Получить список идентификаторов всех подзадач
-    public ArrayList<Integer> getSubtaskIDs() {
+    public List<Integer> getSubtaskIDs() {
         return subtaskIDs;
+    }
+
+    // Добавить идентификатор подзадачи в эпик
+    public void addSubtask(Integer id) {
+        // Ничего не делаем, если уже есть подзадача с таким идентификатором
+        if (subtaskIDs.contains(id)) {
+            return;
+        }
+
+        subtaskIDs.add(id);
+    }
+
+    // Удалить идентификатор подзадачи
+    public void removeSubtask(Integer id) {
+        subtaskIDs.remove(id);
+    }
+
+    // Удалить идентификаторы всех подзадач
+    public void removeAllSubtasks() {
+        subtaskIDs.clear();
     }
 
     @Override
