@@ -2,6 +2,7 @@ import ru.yandex.practicum.TaskManager.TaskManager;
 import ru.yandex.practicum.Tasks.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
@@ -60,7 +61,7 @@ public class Main {
         System.out.println();
     }
 
-    private static void printTasks(ArrayList<Task> tasks) {
+    private static void printTasks(List<Task> tasks) {
         for (Task task : tasks) {
             System.out.println(task);
         }

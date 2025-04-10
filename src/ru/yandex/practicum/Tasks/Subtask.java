@@ -3,7 +3,7 @@ package ru.yandex.practicum.Tasks;
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
     // Идентификатор эпика, в рамках которого выполняется задача
-    private final Integer epicID;
+    private Integer epicID;
 
     // Конструктор класса Subtask
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
@@ -11,9 +11,14 @@ public class Subtask extends Task {
         this.epicID = epicID;
     }
 
-    // Получить эпик
+    // Получить идентификатор эпика
     public Integer getEpicID() {
         return epicID;
+    }
+
+    // Задать идентификатор эпика
+    public void setEpicID(Integer id) {
+        epicID = id;
     }
 
     @Override
