@@ -65,11 +65,14 @@ public class Main {
         var viewedTasks = inMemoryTaskManager.getHistory();
         System.out.println(viewedTasks.size());
         inMemoryTaskManager.getBasicTaskById(1);
-        inMemoryTaskManager.getEpicById(4);
         inMemoryTaskManager.getSubtaskById(6);
+        inMemoryTaskManager.getEpicById(4);
         System.out.println("=> Вывод непустой истории:");
         viewedTasks = inMemoryTaskManager.getHistory();
         System.out.println(viewedTasks.size());
+        for (Task task : viewedTasks) {
+            System.out.println("\t" + task.getId());
+        }
     }
 
     private static void printTasks(List<Task> tasks) {
