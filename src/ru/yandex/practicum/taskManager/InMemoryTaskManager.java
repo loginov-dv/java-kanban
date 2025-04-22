@@ -1,14 +1,11 @@
-package ru.yandex.practicum.TaskManager;
+package ru.yandex.practicum.taskManager;
 
-import ru.yandex.practicum.Tasks.*;
+import ru.yandex.practicum.tasks.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // Класс для описания трекера задач
-public class TaskManager {
+public class InMemoryTaskManager implements TaskManager {
     // Обычные задачи
     private final Map<Integer, Task> basicTasks;
     // Эпики
@@ -17,13 +14,17 @@ public class TaskManager {
     private final Map<Integer, Subtask> subtasks;
     // Последний присвоенный идентификатор
     private int globalID;
+    // Очередь из идентификаторов просмотренных задач
+    private final Queue<Integer> history;
 
     // Конструктор класса TaskManager
-    public TaskManager() {
+    public InMemoryTaskManager() {
         basicTasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
+
+        history = new PriorityQueue<>();
     }
 
     // Получение нового идентификатора
@@ -32,23 +33,28 @@ public class TaskManager {
     }
 
     // Получение списка всех задач (обычных)
+    @Override
     public List<Task> getAllBasicTasks() {
         return new ArrayList<>(basicTasks.values());
     }
     // Получение списка всех подзадач
+    @Override
     public List<Subtask> getAllSubtasks() {
         return new ArrayList<>(subtasks.values());
     }
     // Получение списка всех эпиков
+    @Override
     public List<Epic> getAllEpics() {
         return new ArrayList<>(epics.values());
     }
 
     // Удаление всех задач (обычных)
+    @Override
     public void removeAllBasicTasks() {
         basicTasks.clear();
     }
     // Удаление всех подзадач
+    @Override
     public void removeAllSubtasks() {
         for (Epic epic : epics.values()) {
             // Удаляем все подзадачи из эпика
@@ -63,6 +69,7 @@ public class TaskManager {
         subtasks.clear();
     }
     // Удаление всех эпиков
+    @Override
     public void removeAllEpics() {
         for (Subtask subtask : subtasks.values()) {
             // Разрываем связь с эпиком у подзадачи
@@ -73,23 +80,31 @@ public class TaskManager {
     }
 
     // Получение задачи (обычной) по идентификатору
+    @Override
     public Task getBasicTaskById(int id) {
+        addToHistory(id);
         return basicTasks.getOrDefault(id, null);
     }
     // Получение подзадачи по идентификатору
+    @Override
     public Subtask getSubtaskById(int id) {
+        addToHistory(id);
         return subtasks.getOrDefault(id, null);
     }
     // Получение эпика по идентификатору
+    @Override
     public Epic getEpicById(int id) {
+        addToHistory(id);
         return epics.getOrDefault(id, null);
     }
 
     // Добавление новой задачи (обычной)
+    @Override
     public void addBasicTask(Task task) {
         basicTasks.put(task.getId(), task);
     }
     // Добавление новой подзадачи
+    @Override
     public void addSubtask(Subtask subtask) {
         // Ничего не делаем, если уже есть подзадача с таким идентификатором
         if (subtasks.containsKey(subtask.getId())) {
@@ -119,15 +134,18 @@ public class TaskManager {
         }
     }
     // Добавление нового эпика
+    @Override
     public void addEpic(Epic epic) {
         epics.put(epic.getId(), epic);
     }
 
     // Обновление задачи (обычной)
+    @Override
     public void updateBasicTask(Task updatedTask) {
         basicTasks.put(updatedTask.getId(), updatedTask);
     }
     // Обновление подзадачи
+    @Override
     public void updateSubtask(Subtask updatedSubtask) {
         // Обновляем подзадачу в хешмапе
         subtasks.put(updatedSubtask.getId(), updatedSubtask);
@@ -150,6 +168,7 @@ public class TaskManager {
         }
     }
     // Обновление эпика
+    @Override
     public void updateEpic(Epic updatedEpic) {
         epics.put(updatedEpic.getId(), updatedEpic);
     }
@@ -190,10 +209,12 @@ public class TaskManager {
     }
 
     // Удаление задачи (обычной) по идентификатору
+    @Override
     public void removeBasicTaskById(int id) {
         basicTasks.remove(id);
     }
     // Удаление подзадачи по идентификатору
+    @Override
     public void removeSubtaskById(int id) {
         Subtask subtask = getSubtaskById(id);
         subtasks.remove(id);
@@ -218,6 +239,7 @@ public class TaskManager {
         }
     }
     // Удаление эпика по идентификатору
+    @Override
     public void removeEpicById(int id) {
         Epic epic = getEpicById(id);
         // Обновляем подзадачи (теперь без эпика)
@@ -230,6 +252,7 @@ public class TaskManager {
     }
 
     // Получение всех подзадач для указанного эпика
+    @Override
     public List<Subtask> getAllSubtasksOfEpic(Epic epic) {
         if (!epics.containsKey(epic.getId())) {
             return null;
@@ -241,5 +264,35 @@ public class TaskManager {
 
             return epicSubtasks;
         }
+    }
+
+    // Получить 10 последних просмотренных задач
+    @Override
+    public List<Task> getHistory() {
+        // Если история просмотра пуста - возвращаем пустой список
+        if (history.isEmpty()) {
+            return List.of();
+        }
+
+        ArrayList<Task> viewedTasks = new ArrayList<>();
+
+        for (Integer id : history) {
+            if (basicTasks.containsKey(id)) {
+                viewedTasks.add(basicTasks.get(id));
+            } else if (epics.containsKey(id)) {
+                viewedTasks.add(epics.get(id));
+            } else viewedTasks.add(subtasks.getOrDefault(id, null));
+        }
+
+        return viewedTasks;
+    }
+
+    // Добавить
+    private void addToHistory(Integer id) {
+        if (history.size() == 10) {
+            history.poll();
+        }
+
+        history.add(id);
     }
 }

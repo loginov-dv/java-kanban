@@ -1,4 +1,4 @@
-package ru.yandex.practicum.Tasks;
+package ru.yandex.practicum.tasks;
 
 // Этапы жизни задачи
 public enum TaskStatus {

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.Tasks;
+package ru.yandex.practicum.tasks;
 
 import java.util.Objects;
 
