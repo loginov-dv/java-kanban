@@ -1,4 +1,4 @@
-import ru.yandex.practicum.taskManager.InMemoryTaskManager;
+import ru.yandex.practicum.taskManagement.InMemoryTaskManager;
 import ru.yandex.practicum.tasks.*;
 
 import java.util.ArrayList;
@@ -67,6 +67,7 @@ public class Main {
         inMemoryTaskManager.getBasicTaskById(1);
         inMemoryTaskManager.getSubtaskById(6);
         inMemoryTaskManager.getEpicById(4);
+        inMemoryTaskManager.getBasicTaskById(1);
         System.out.println("=> Вывод непустой истории:");
         viewedTasks = inMemoryTaskManager.getHistory();
         System.out.println(viewedTasks.size());

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskManager;
+package ru.yandex.practicum.taskManagement;
 
 import ru.yandex.practicum.tasks.*;
 

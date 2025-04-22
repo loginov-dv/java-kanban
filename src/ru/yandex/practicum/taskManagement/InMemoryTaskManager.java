@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskManager;
+package ru.yandex.practicum.taskManagement;
 
 import ru.yandex.practicum.tasks.*;
 
@@ -12,11 +12,14 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Epic> epics;
     // Подзадачи
     private final Map<Integer, Subtask> subtasks;
+
     // Последний присвоенный идентификатор
     private int globalID;
-    // Очередь из идентификаторов просмотренных задач
+
+    // Очередь идентификаторов просмотренных задач
+    // (сходя из требований ТЗ - очередь лучше всего подходит для решения поставленной задачи)
     private final Queue<Integer> history;
-    // Константа, обозначающая наибольшее возможное количество задач в истории просмотра
+    // Наибольшее возможное количество задач в истории просмотра
     private static final int HISTORY_DEPTH = 10;
 
     // Конструктор класса TaskManager
@@ -84,18 +87,21 @@ public class InMemoryTaskManager implements TaskManager {
     // Получение задачи (обычной) по идентификатору
     @Override
     public Task getBasicTaskById(int id) {
+        // Добавляем id задачи в историю просмотра
         addToHistory(id);
         return basicTasks.getOrDefault(id, null);
     }
     // Получение подзадачи по идентификатору
     @Override
     public Subtask getSubtaskById(int id) {
+        // Добавляем id задачи в историю просмотра
         addToHistory(id);
         return subtasks.getOrDefault(id, null);
     }
     // Получение эпика по идентификатору
     @Override
     public Epic getEpicById(int id) {
+        // Добавляем id задачи в историю просмотра
         addToHistory(id);
         return epics.getOrDefault(id, null);
     }
