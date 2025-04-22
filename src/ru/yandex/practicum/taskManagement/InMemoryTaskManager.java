@@ -19,6 +19,7 @@ public class InMemoryTaskManager implements TaskManager {
     // Очередь идентификаторов просмотренных задач
     // (сходя из требований ТЗ - очередь лучше всего подходит для решения поставленной задачи)
     private final Queue<Integer> history;
+    private final ArrayList<Task> history_list;
     // Наибольшее возможное количество задач в истории просмотра
     private static final int HISTORY_DEPTH = 10;
 
@@ -30,6 +31,7 @@ public class InMemoryTaskManager implements TaskManager {
         globalID = 0;
 
         history = new ArrayDeque<>();
+        history_list = new ArrayList<>();
     }
 
     // Получение нового идентификатора
@@ -89,6 +91,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task getBasicTaskById(int id) {
         // Добавляем id задачи в историю просмотра
         addToHistory(id);
+        addToHistory(basicTasks.get(id));
         return basicTasks.getOrDefault(id, null);
     }
     // Получение подзадачи по идентификатору
@@ -96,6 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Subtask getSubtaskById(int id) {
         // Добавляем id задачи в историю просмотра
         addToHistory(id);
+        addToHistory(subtasks.get(id));
         return subtasks.getOrDefault(id, null);
     }
     // Получение эпика по идентификатору
@@ -103,6 +107,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Epic getEpicById(int id) {
         // Добавляем id задачи в историю просмотра
         addToHistory(id);
+        addToHistory(epics.get(id));
         return epics.getOrDefault(id, null);
     }
 
@@ -251,7 +256,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeEpicById(int id) {
         Epic epic = epics.get(id);
         // Обновляем подзадачи (теперь без эпика)
-        for (Subtask subtask : getAllSubtasksOfEpic(epic)) {
+        for (Subtask subtask : getAllEpicSubtasks(epic)) {
             updateSubtask(new Subtask(subtask.getId(), subtask.getName(), subtask.getDescription(),
                     subtask.getStatus(), null));
         }
@@ -261,7 +266,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение всех подзадач для указанного эпика
     @Override
-    public List<Subtask> getAllSubtasksOfEpic(Epic epic) {
+    public List<Subtask> getAllEpicSubtasks(Epic epic) {
         if (!epics.containsKey(epic.getId())) {
             return null;
         } else {
@@ -295,6 +300,14 @@ public class InMemoryTaskManager implements TaskManager {
         return viewedTasks;
     }
 
+    public List<Task> getHistory_list() {
+        if (history_list.isEmpty()) {
+            return List.of();
+        }
+
+        return history_list;
+    }
+
     // Добавить идентификатор задачи в историю просмотра
     private void addToHistory(Integer id) {
         // Если очередь заполнена, освобождаем место путём удаления элемента из начала очереди
@@ -303,5 +316,13 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         history.add(id);
+    }
+
+    private void addToHistory(Task task) {
+        if (history_list.size() == HISTORY_DEPTH) {
+            history_list.removeFirst();
+        }
+
+        history_list.add(task);
     }
 }

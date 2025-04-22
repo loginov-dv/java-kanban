@@ -1,8 +1,5 @@
-import ru.yandex.practicum.taskManagement.InMemoryTaskManager;
+import ru.yandex.practicum.taskManagement.*;
 import ru.yandex.practicum.tasks.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
@@ -31,9 +28,7 @@ public class Main {
         inMemoryTaskManager.addSubtask(subtask12);
         inMemoryTaskManager.addSubtask(subtask21);
 
-        printTasks(inMemoryTaskManager.getAllBasicTasks());
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllEpics()));
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllSubtasks()));
+        printAllTasks(inMemoryTaskManager);
         System.out.println();
 
         System.out.println("=> Изменение статусов задач:\n");
@@ -45,9 +40,7 @@ public class Main {
         inMemoryTaskManager.updateSubtask(new Subtask(subtask21.getId(), subtask21.getName(), subtask21.getDescription(),
                 TaskStatus.DONE, epic2.getId()));
 
-        printTasks(inMemoryTaskManager.getAllBasicTasks());
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllEpics()));
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllSubtasks()));
+        printAllTasks(inMemoryTaskManager);
         System.out.println();
 
         System.out.println("=> Удаление одной задачи и одного эпика:\n");
@@ -55,9 +48,7 @@ public class Main {
         inMemoryTaskManager.removeBasicTaskById(2);
         inMemoryTaskManager.removeEpicById(3);
 
-        printTasks(inMemoryTaskManager.getAllBasicTasks());
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllEpics()));
-        printTasks(new ArrayList<>(inMemoryTaskManager.getAllSubtasks()));
+        printAllTasks(inMemoryTaskManager);
         System.out.println();
 
         System.out.println("*** s5 ***");
@@ -76,9 +67,29 @@ public class Main {
         }
     }
 
-    private static void printTasks(List<Task> tasks) {
-        for (Task task : tasks) {
+    private static void printAllTasks(TaskManager manager) {
+        System.out.println("Задачи:");
+        for (Task task : manager.getAllBasicTasks()) {
             System.out.println(task);
         }
+        System.out.println("Эпики:");
+        for (Epic epic : manager.getAllEpics()) {
+            System.out.println(epic);
+
+            for (Subtask subtask : manager.getAllEpicSubtasks(epic)) {
+                System.out.println("--> " + subtask);
+            }
+        }
+        System.out.println("Подзадачи:");
+        for (Task subtask : manager.getAllSubtasks()) {
+            System.out.println(subtask);
+        }
+
+        System.out.println("История:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
+        }
+
+        System.out.println("*".repeat(20));
     }
 }

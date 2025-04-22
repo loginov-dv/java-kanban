@@ -4,6 +4,7 @@ import ru.yandex.practicum.tasks.*;
 
 import java.util.List;
 
+// Интерфейс для предоставления функциональности трекера задач
 public interface TaskManager {
 
     List<Task> getAllBasicTasks();
@@ -30,7 +31,7 @@ public interface TaskManager {
     void removeSubtaskById(int id);
     void removeEpicById(int id);
 
-    List<Subtask> getAllSubtasksOfEpic(Epic epic);
+    List<Subtask> getAllEpicSubtasks(Epic epic);
 
     List<Task> getHistory();
 }
