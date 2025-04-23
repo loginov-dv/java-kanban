@@ -16,22 +16,21 @@ public class InMemoryTaskManager implements TaskManager {
     // Последний присвоенный идентификатор
     private int globalID;
 
-    // Очередь идентификаторов просмотренных задач
-    // (сходя из требований ТЗ - очередь лучше всего подходит для решения поставленной задачи)
-    private final Queue<Integer> history;
-    private final ArrayList<Task> history_list;
-    // Наибольшее возможное количество задач в истории просмотра
-    private static final int HISTORY_DEPTH = 10;
+    // Менеджер истории просмотра задач
+    private final HistoryManager historyManager;
 
-    // Конструктор класса TaskManager
-    public InMemoryTaskManager() {
+    // Конструктор класса InMemoryTaskManager
+    public InMemoryTaskManager(HistoryManager historyManager) {
         basicTasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
+        this.historyManager = historyManager;
+    }
 
-        history = new ArrayDeque<>();
-        history_list = new ArrayList<>();
+    // Конструктор класса InMemoryTaskManager
+    public InMemoryTaskManager() {
+        this(new InMemoryHistoryManager());
     }
 
     // Получение нового идентификатора
@@ -89,24 +88,21 @@ public class InMemoryTaskManager implements TaskManager {
     // Получение задачи (обычной) по идентификатору
     @Override
     public Task getBasicTaskById(int id) {
-        // Добавляем id задачи в историю просмотра
-        addToHistory(id);
+        // Добавляем задачу в историю просмотра
         addToHistory(basicTasks.get(id));
         return basicTasks.getOrDefault(id, null);
     }
     // Получение подзадачи по идентификатору
     @Override
     public Subtask getSubtaskById(int id) {
-        // Добавляем id задачи в историю просмотра
-        addToHistory(id);
+        // Добавляем задачу в историю просмотра
         addToHistory(subtasks.get(id));
         return subtasks.getOrDefault(id, null);
     }
     // Получение эпика по идентификатору
     @Override
     public Epic getEpicById(int id) {
-        // Добавляем id задачи в историю просмотра
-        addToHistory(id);
+        // Добавляем задачу в историю просмотра
         addToHistory(epics.get(id));
         return epics.getOrDefault(id, null);
     }
@@ -279,50 +275,14 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    // Получить 10 последних просмотренных задач
+    // Получить список просмотренных задач
     @Override
     public List<Task> getHistory() {
-        // Если история просмотра пуста - возвращаем пустой список
-        if (history.isEmpty()) {
-            return List.of();
-        }
-
-        ArrayList<Task> viewedTasks = new ArrayList<>();
-
-        for (Integer id : history) {
-            if (basicTasks.containsKey(id)) {
-                viewedTasks.add(basicTasks.get(id));
-            } else if (epics.containsKey(id)) {
-                viewedTasks.add(epics.get(id));
-            } else viewedTasks.add(subtasks.getOrDefault(id, null));
-        }
-
-        return viewedTasks;
-    }
-
-    public List<Task> getHistory_list() {
-        if (history_list.isEmpty()) {
-            return List.of();
-        }
-
-        return history_list;
+        return historyManager.getHistory();
     }
 
     // Добавить идентификатор задачи в историю просмотра
-    private void addToHistory(Integer id) {
-        // Если очередь заполнена, освобождаем место путём удаления элемента из начала очереди
-        if (history.size() == HISTORY_DEPTH) {
-            history.poll();
-        }
-
-        history.add(id);
-    }
-
     private void addToHistory(Task task) {
-        if (history_list.size() == HISTORY_DEPTH) {
-            history_list.removeFirst();
-        }
-
-        history_list.add(task);
+        historyManager.addTask(task);
     }
 }

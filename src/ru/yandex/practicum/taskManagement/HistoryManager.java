@@ -4,7 +4,7 @@ import ru.yandex.practicum.tasks.*;
 
 import java.util.List;
 
-// Интерфейс для предоставления функциональности истории просмотренных задач
+// Интерфейс для предоставления функциональности управления историей просмотра задач
 public interface HistoryManager {
 
     void addTask(Task task);
