@@ -5,7 +5,7 @@ public class Managers {
 
     // Создать объект класса, реализующего TaskManager, по умолчанию
     public static TaskManager getDefault() {
-        return new InMemoryTaskManager();
+        return new InMemoryTaskManager(getDefaultHistory());
     }
 
     // Создать объект класса, реализующего HistoryManager, по умолчанию

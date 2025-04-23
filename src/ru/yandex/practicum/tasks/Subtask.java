@@ -18,6 +18,11 @@ public class Subtask extends Task {
 
     // Задать идентификатор эпика
     public void setEpicID(Integer id) {
+        // Проверка на добавление самой себя в эпик
+        if (id != null && this.getId() == id) {
+            return;
+        }
+
         epicID = id;
     }
 

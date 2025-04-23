@@ -26,6 +26,14 @@ public class Epic extends Task {
 
     // Добавить идентификатор подзадачи в эпик
     public void addSubtask(Integer id) {
+        // Проверка на добавление null
+        if (id == null) {
+            return;
+        }
+        // Проверка на добавление самого себя в подзадачи
+        if (this.getId() == id) {
+            return;
+        }
         // Ничего не делаем, если уже есть подзадача с таким идентификатором
         if (subtaskIDs.contains(id)) {
             return;
