@@ -122,7 +122,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Добавляем новую подзадачу в хешмапу
         subtasks.put(subtask.getId(), subtask);
-
+        // TODO: refactor
         // Обновляем эпик, к которому относится подзадача
         Integer epicID = subtask.getEpicID();
         // Если epicID = null, подзадача без эпика
@@ -131,6 +131,10 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         Epic epic = epics.get(epicID);
+        // Проверка на отсутствие эпика в менеджере
+        if (epic == null) {
+            return;
+        }
         // Добавляем id новой подзадачи в эпик
         epic.addSubtask(subtask.getId());
         // Рассчитываем новый статус

@@ -8,6 +8,7 @@ public class Subtask extends Task {
     // Конструктор класса Subtask
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
         super(id, name, description, status);
+        // TODO:
         this.epicID = epicID;
     }
 
