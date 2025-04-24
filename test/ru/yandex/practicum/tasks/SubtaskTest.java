@@ -15,19 +15,20 @@ class SubtaskTest {
     }
 
     @Test
-    void checkIfTwoSubtasksWithTheSameIdEquals() {
+    void checkEquals() {
+        // Две задачи должны быть равны, если равны их id
+        // Создаём ещё одну подзадачу с таким же id, но отличными значениями других полей
         Subtask anotherSubtask = new Subtask(1, "Subtask2", "description of subtask2",
                 TaskStatus.IN_PROGRESS, 6000);
 
-        assertEquals(testSubtask, anotherSubtask, "Подзадачи не равны");
+        assertEquals(testSubtask, anotherSubtask, "Задачи с одинаковыми id оказались не равны");
     }
 
     @Test
     void shouldNotAddItselfAsEpic() {
-        assertNotNull(testSubtask.getEpicID(), "Начальный id эпика не был задан");
-
+        // Подзадачу нельзя сделать своим же эпиком
         testSubtask.setEpicID(testSubtask.getId());
         assertNotEquals(testSubtask.getId(), testSubtask.getEpicID(),
-                "Подзадача не может быть своим же эпиком");
+                "Подзадачу нельзя сделать своим же эпиком");
     }
 }

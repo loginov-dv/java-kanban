@@ -14,23 +14,25 @@ class EpicTest {
     }
 
     @Test
-    void checkIfTwoEpicsWithTheSameIdEquals() {
+    void checkEquals() {
+        // Две задачи должны быть равны, если равны их id
+        // Создаём ещё один эпик с таким же id, но отличными значениями других полей
         Epic anotherEpic = new Epic(1, "Epic2", "description of epic2", TaskStatus.IN_PROGRESS);
 
-        assertEquals(testEpic, anotherEpic, "Задачи не равны");
+        assertEquals(testEpic, anotherEpic, "Задачи с одинаковыми id оказались не равны");
     }
 
     @Test
     void shouldNotAddItselfAsSubtask() {
+        // Эпик нельзя добавить в самого себя в виде подзадачи
         testEpic.addSubtask(testEpic.getId());
         assertFalse(testEpic.getSubtaskIDs().contains(testEpic.getId()),
-                "Эпик не может быть добавлен в свой список подзадач");
+                "Эпик нельзя добавить в самого себя в виде подзадачи");
     }
 
     @Test
     void shouldNotAddNullAsSubtask() {
-        assertEquals(0, testEpic.getSubtaskIDs().size(), "Список подзадач не был пуст");
-
+        // Проверяем на добавление null как подзадачи
         testEpic.addSubtask(10);
         testEpic.addSubtask(null);
         assertEquals(1, testEpic.getSubtaskIDs().size(), "null нельзя добавить как подзадачу");
