@@ -27,8 +27,8 @@ class SubtaskTest {
     @Test
     void shouldNotAddItselfAsEpic() {
         // Подзадачу нельзя сделать своим же эпиком
-        testSubtask.setEpicID(testSubtask.getId());
-        assertNotEquals(testSubtask.getId(), testSubtask.getEpicID(),
+        Subtask subtask = new Subtask(1, "Subtask", "description", TaskStatus.NEW, 1);
+        assertNotEquals(testSubtask.getID(), testSubtask.getEpicID(),
                 "Подзадачу нельзя сделать своим же эпиком");
     }
 }

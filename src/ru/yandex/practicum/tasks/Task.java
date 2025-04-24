@@ -32,7 +32,7 @@ public class Task {
     }
 
     // Получить идентификатор задачи
-    public int getId() {
+    public int getID() {
         return id;
     }
 

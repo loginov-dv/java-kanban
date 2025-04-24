@@ -8,8 +8,10 @@ public class Subtask extends Task {
     // Конструктор класса Subtask
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
         super(id, name, description, status);
-        // TODO:
-        this.epicID = epicID;
+
+        if (epicID != id) {
+            this.epicID = epicID;
+        }
     }
 
     // Получить идентификатор эпика
@@ -18,14 +20,14 @@ public class Subtask extends Task {
     }
 
     // Задать идентификатор эпика
-    public void setEpicID(Integer id) {
+    /*public void setEpicID(Integer id) {
         // Проверка на добавление самой себя в эпик
         if (id != null && this.getId() == id) {
             return;
         }
 
         epicID = id;
-    }
+    }*/
 
     @Override
     public String toString() {

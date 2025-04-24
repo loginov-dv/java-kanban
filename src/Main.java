@@ -19,11 +19,11 @@ public class Main {
         inMemoryTaskManager.addEpic(epic2);
 
         Subtask subtask11 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getId());
+                TaskStatus.NEW, epic1.getID());
         Subtask subtask12 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 12", "Описание",
-                TaskStatus.NEW, epic1.getId());
+                TaskStatus.NEW, epic1.getID());
         Subtask subtask21 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 21", "Описание",
-                TaskStatus.NEW, epic2.getId());
+                TaskStatus.NEW, epic2.getID());
         inMemoryTaskManager.addSubtask(subtask11);
         inMemoryTaskManager.addSubtask(subtask12);
         inMemoryTaskManager.addSubtask(subtask21);
@@ -33,12 +33,12 @@ public class Main {
 
         System.out.println("=> Изменение статусов задач:\n");
 
-        inMemoryTaskManager.updateBasicTask(new Task(task1.getId(), task1.getName(), "Новое описание",
+        inMemoryTaskManager.updateBasicTask(new Task(task1.getID(), task1.getName(), "Новое описание",
                 TaskStatus.IN_PROGRESS));
-        inMemoryTaskManager.updateSubtask(new Subtask(subtask11.getId(), subtask11.getName(), "Новое описание",
-                TaskStatus.IN_PROGRESS, epic1.getId()));
-        inMemoryTaskManager.updateSubtask(new Subtask(subtask21.getId(), subtask21.getName(), subtask21.getDescription(),
-                TaskStatus.DONE, epic2.getId()));
+        inMemoryTaskManager.updateSubtask(new Subtask(subtask11.getID(), subtask11.getName(), "Новое описание",
+                TaskStatus.IN_PROGRESS, epic1.getID()));
+        inMemoryTaskManager.updateSubtask(new Subtask(subtask21.getID(), subtask21.getName(), subtask21.getDescription(),
+                TaskStatus.DONE, epic2.getID()));
 
         printAllTasks(inMemoryTaskManager);
         System.out.println();
@@ -63,7 +63,7 @@ public class Main {
         viewedTasks = inMemoryTaskManager.getHistory();
         System.out.println(viewedTasks.size());
         for (Task task : viewedTasks) {
-            System.out.println("\t" + task.getId());
+            System.out.println("\t" + task.getID());
         }
     }
 

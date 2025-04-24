@@ -5,7 +5,7 @@ import java.util.List;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
-    // Идентификаторы подзадач, входящих в эпик
+    // id подзадач, входящих в эпик
     private List<Integer> subtaskIDs;
 
     // Конструктор класса Epic
@@ -16,7 +16,13 @@ public class Epic extends Task {
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
         this(id, name, description, status);
-        this.subtaskIDs = subtaskIDs;
+        // Не добавляем, если id подзадачи равен null или равен id самого эпика
+        //this.subtaskIDs = new ArrayList<>();
+        for (Integer subtaskID : subtaskIDs) {
+            if (subtaskID != null && subtaskID != Integer.valueOf(id)) {
+                this.subtaskIDs.add(subtaskID);
+            }
+        }
     }
 
     // Получить список идентификаторов всех подзадач
@@ -25,7 +31,7 @@ public class Epic extends Task {
     }
 
     // Добавить идентификатор подзадачи в эпик
-    public void addSubtask(Integer id) {
+    /*public void addSubtask(Integer id) {
         // Проверка на добавление null
         if (id == null) {
             return;
@@ -40,17 +46,17 @@ public class Epic extends Task {
         }
 
         subtaskIDs.add(id);
-    }
+    }*/
 
     // Удалить идентификатор подзадачи
-    public void removeSubtask(Integer id) {
+    /*public void removeSubtask(Integer id) {
         subtaskIDs.remove(id);
-    }
+    }*/
 
     // Удалить идентификаторы всех подзадач
-    public void removeAllSubtasks() {
+    /*public void removeAllSubtasks() {
         subtaskIDs.clear();
-    }
+    }*/
 
     @Override
     public String toString() {
