@@ -1,5 +1,6 @@
 package ru.yandex.practicum.taskManagement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void canFindTask() {
-        // Создаём задачу
+        // Создаём задачу и добавляем в трекер
         Task task = new Task(1, "task", "description", TaskStatus.NEW);
         taskManager.addBasicTask(task);
 
@@ -62,7 +63,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void canFindEpic() {
-        // Создаём эпик
+        // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
 
@@ -76,7 +77,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void canFindSubtask() {
-        // Создаём подзадачу
+        // Создаём подзадачу и добавляем в трекер
         Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10);
         taskManager.addSubtask(subtask);
 
@@ -89,40 +90,85 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldUpdateEpicIfAddedSubtask() {
-        // Создаём эпик
+    void shouldUpdateTask() {
+        // Создаём задачу и добавляем в трекер
+        Task task = new Task(1, "Task1", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task);
+
+        // Обновляем задачу путём передачи нового объекта (с изменённым состоянием)
+        Task updatedTask = new Task(task.getID(), "Task1_upd", "description_upd", TaskStatus.IN_PROGRESS);
+        taskManager.updateBasicTask(updatedTask);
+
+        // Проверяем изменение полей задачи
+        task = taskManager.getBasicTaskById(task.getID());
+        assertEquals(updatedTask.getName(), task.getName(), "Не было обновлено имя задачи");
+        assertEquals(updatedTask.getDescription(), task.getDescription(), "Не было обновлено описание задачи");
+        assertEquals(updatedTask.getStatus(), task.getStatus(), "Не был обновлен статус задачи");
+    }
+
+    @Test
+    void shouldRemoveTask() {
+        // Создаём задачу и добавляем в трекер
+        Task task = new Task(1, "Task1", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task);
+
+        // Проверяем, что задача добавлена
+        assertEquals(1, taskManager.getAllBasicTasks().size(), "Задача не была добавлена");
+
+        // Удаляем задачу
+        taskManager.removeBasicTaskById(1);
+        // Проверяем удаление
+        assertEquals(0, taskManager.getAllBasicTasks().size(), "Задача не была удалена");
+    }
+
+    @Test
+    void shouldUpdateEpicIfAddedAndThenRemovedSubtask() {
+        // Создаём эпик и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
         taskManager.addEpic(epic1);
 
         // Создаём подзадачу, которая ссылается на этот эпик
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID());
+                TaskStatus.IN_PROGRESS, epic1.getID());
         taskManager.addSubtask(subtask11);
 
-        // Получаем эпик
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
         Epic updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(1, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
+        assertEquals(TaskStatus.IN_PROGRESS, updatedEpic.getStatus(),
+                "Некорректное обновление статуса эпика");
+
+        // Удаляем подзадачу из трекера
+        taskManager.removeSubtaskById(11);
+
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        // (кол-во элементов в списке подзадач = 0 и статус = NEW)
+        updatedEpic = taskManager.getEpicById(epic1.getID());
+        assertEquals(0, updatedEpic.getSubtaskIDs().size(),
+                "id подзадачи не был удалён из списка подзадач эпика");
+        assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
+                "Некорректное обновление статуса эпика");
     }
 
     @Test
-    void shouldChangeEpicStatusIfSubtaskChangeTheirStatus() {
-        // Создаём эпик
+    void shouldChangeEpicStatusIfSubtasksChangeTheirStatus() {
+        // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
 
-        // Создаём подзадачи
+        // Создаём подзадачи со ссылкой на эпик
         Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID());
         taskManager.addSubtask(sub1);
         Subtask sub2 = new Subtask(20, "Subtask2", "description", TaskStatus.NEW, epic.getID());
         taskManager.addSubtask(sub2);
 
-        // Проверяем, что id подзадач добавились к эпику
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
         epic = taskManager.getEpicById(epic.getID());
         assertArrayEquals(epic.getSubtaskIDs().toArray(), List.of(sub1.getID(), sub2.getID()).toArray(),
                 "id подзадач не были добавлены в список подзадач эпика");
 
-        // Дополнительно проверяем, что у подзадач заполнено поле с id эпика
+        // Дополнительно проверяем, что у подзадач (одной из) заполнено поле с id эпика
         sub2 = taskManager.getSubtaskById(sub2.getID());
         assertEquals(epic.getID(), sub2.getEpicID(), "id эпика не был добавлен в подзадачу");
 
@@ -144,8 +190,78 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void shouldUpdateEpicsIfRemovedAllSubtasks() {
+        // Создаём эпики и добавляем в трекер
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        // Создаём подзадачи и добавляем в трекер
+        Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
+                TaskStatus.NEW, epic1.getID());
+        Subtask subtask21 = new Subtask(21, "Подзадача 21", "Описание",
+                TaskStatus.NEW, epic2.getID());
+        taskManager.addSubtask(subtask11);
+        taskManager.addSubtask(subtask21);
+
+        // Получаем эпики из трекера, ожидая, что они должны обновиться
+        epic1 = taskManager.getEpicById(epic1.getID());
+        assertEquals(1, epic1.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+        epic2 = taskManager.getEpicById(epic1.getID());
+        assertEquals(1, epic2.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+
+        // Удаляем все подзадачи
+        taskManager.removeAllSubtasks();
+
+        // Получаем эпики из трекера, ожидая, что они должны обновиться
+        epic1 = taskManager.getEpicById(epic1.getID());
+        assertEquals(0, epic1.getSubtaskIDs().size(),
+                "id подзадачи не был удалён из списка подзадач эпика");
+        epic2 = taskManager.getEpicById(epic1.getID());
+        assertEquals(0, epic2.getSubtaskIDs().size(),
+                "id подзадачи не был удалён из списка подзадач эпика");
+    }
+
+    @Test
+    void shouldUpdateSubtasksIfRemovedAllEpics() {
+        // Создаём эпики и добавляем в трекер
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        // Создаём подзадачи и добавляем в трекер
+        Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
+                TaskStatus.NEW, epic1.getID());
+        Subtask subtask21 = new Subtask(21, "Подзадача 21", "Описание",
+                TaskStatus.NEW, epic2.getID());
+        taskManager.addSubtask(subtask11);
+        taskManager.addSubtask(subtask21);
+
+        // Получаем эпики из трекера, ожидая, что они должны обновиться
+        epic1 = taskManager.getEpicById(epic1.getID());
+        assertEquals(1, epic1.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+        epic2 = taskManager.getEpicById(epic1.getID());
+        assertEquals(1, epic2.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+
+        // Удаляем все эпики
+        taskManager.removeAllEpics();
+
+        // Получаем подзадачи из трекера, ожидая, что они должны обновиться
+        subtask11 = taskManager.getSubtaskById(11);
+        assertNull(subtask11.getEpicID(), "id эпика не был удалён из подзадачи");
+        subtask21 = taskManager.getSubtaskById(21);
+        assertNull(subtask21.getEpicID(), "id эпика не был удалён из подзадачи");
+    }
+
+    @Test
     void shouldAddTaskToHistory() {
-        // Создаём эпик
+        // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
 
@@ -163,7 +279,7 @@ class InMemoryTaskManagerTest {
         assertTrue(taskManager.getHistory().contains(epic),
                 "В историю была добавлена задача с некорректным id");
 
-        // Создаём подзадачи
+        // Создаём подзадачи со ссылкой на id эпика
         Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID());
         taskManager.addSubtask(sub1);
         Subtask sub2 = new Subtask(20, "Subtask2", "description", TaskStatus.NEW, epic.getID());
@@ -176,21 +292,66 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldUpdateTask() {
-        // Создаём задачу
-        Task task = new Task(1, "Task1", "description", TaskStatus.NEW);
-        taskManager.addBasicTask(task);
+    void shouldKeepHistoryLimit() {
+        // Создаём эпик
+        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic);
 
-        // Обновляем задачу путём передачи нового объекта (с изменённым состоянием)
-        Task updatedTask = new Task(task.getID(), "Task1_upd", "description_upd", TaskStatus.IN_PROGRESS);
-        taskManager.updateBasicTask(updatedTask);
+        // Создаём подзадачу
+        Subtask subtask = new Subtask(100, "subtask", "description",
+                TaskStatus.NEW, 10);
+        taskManager.addSubtask(subtask);
 
-        // Проверяем изменение полей
-        task = taskManager.getBasicTaskById(task.getID());
-        assertEquals(updatedTask.getName(), task.getName(), "Не было обновлено имя задачи");
-        assertEquals(updatedTask.getDescription(), task.getDescription(), "Не было обновлено описание задачи");
-        assertEquals(updatedTask.getStatus(), task.getStatus(), "Не был обновлен статус задачи");
+        // Проверим, что размер списка истории соответствует количеству вызовов методов получения задач\
+        taskManager.getEpicById(10);
+        taskManager.getSubtaskById(100);
+        assertEquals(2, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+        // Проверим состав списка
+        ArrayList<Integer> expectedList = new ArrayList<>(List.of(10, 100));
+        ArrayList<Integer> actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректное добавление задач в историю просмотра");
+        // По умолчанию "глубина хранения" равна 10
+        // Ещё 8 раз запросим подзадачу, чтобы достичь лимита списка
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        // Проверим, что размер списка соответствует количеству вызовов методов
+        assertEquals(10, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+        // Проверим состав списка
+        expectedList = new ArrayList<>(List.of(10, 100, 100, 100, 100, 100, 100 ,100 ,100 ,100));
+        actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректное добавление задач в историю просмотра");
+        // Ещё пару раз запросим подзадачу и проверим, что количество задач в истории не изменилось
+        taskManager.getSubtaskById(100);
+        taskManager.getSubtaskById(100);
+        assertEquals(10, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+        // Проверим, что при исчерпании размера списка будет удалён самый старый элемент
+        // Т.е. в истории не должно быть эпика
+        assertFalse(taskManager.getHistory().contains(epic),
+                "Некорректное добавление задач в историю просмотра");
+        // Проверим состав списка
+        expectedList = new ArrayList<>(List.of(100, 100, 100, 100, 100, 100, 100 ,100 ,100 ,100));
+        actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректное добавление задач в историю просмотра");
     }
-
-
 }

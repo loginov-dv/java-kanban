@@ -8,8 +8,8 @@ public class Subtask extends Task {
     // Конструктор класса Subtask
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
         super(id, name, description, status);
-
-        if (epicID != id) {
+        // Не добавляем, если id эпика равен id самой подзадачи
+        if (epicID != Integer.valueOf(id)) {
             this.epicID = epicID;
         }
     }
