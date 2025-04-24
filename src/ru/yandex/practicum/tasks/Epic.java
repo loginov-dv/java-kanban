@@ -17,7 +17,6 @@ public class Epic extends Task {
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
         this(id, name, description, status);
         // Не добавляем, если id подзадачи равен null или равен id самого эпика
-        //this.subtaskIDs = new ArrayList<>();
         for (Integer subtaskID : subtaskIDs) {
             if (subtaskID != null && subtaskID != Integer.valueOf(id)) {
                 this.subtaskIDs.add(subtaskID);
@@ -25,38 +24,10 @@ public class Epic extends Task {
         }
     }
 
-    // Получить список идентификаторов всех подзадач
+    // Получить список id всех подзадач
     public List<Integer> getSubtaskIDs() {
         return subtaskIDs;
     }
-
-    // Добавить идентификатор подзадачи в эпик
-    /*public void addSubtask(Integer id) {
-        // Проверка на добавление null
-        if (id == null) {
-            return;
-        }
-        // Проверка на добавление самого себя в подзадачи
-        if (this.getId() == id) {
-            return;
-        }
-        // Ничего не делаем, если уже есть подзадача с таким идентификатором
-        if (subtaskIDs.contains(id)) {
-            return;
-        }
-
-        subtaskIDs.add(id);
-    }*/
-
-    // Удалить идентификатор подзадачи
-    /*public void removeSubtask(Integer id) {
-        subtaskIDs.remove(id);
-    }*/
-
-    // Удалить идентификаторы всех подзадач
-    /*public void removeAllSubtasks() {
-        subtaskIDs.clear();
-    }*/
 
     @Override
     public String toString() {
