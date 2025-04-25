@@ -346,12 +346,50 @@ class InMemoryTaskManagerTest {
         assertFalse(taskManager.getHistory().contains(epic),
                 "Некорректное добавление задач в историю просмотра");
         // Проверим состав списка
-        expectedList = new ArrayList<>(List.of(100, 100, 100, 100, 100, 100, 100 ,100 ,100 ,100));
+        expectedList = new ArrayList<>(List.of(100, 100, 100, 100, 100, 100, 100, 100, 100, 100));
         actualList = new ArrayList<>();
         for (Task task : taskManager.getHistory()) {
             actualList.add(task.getID());
         }
         assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректное добавление задач в историю просмотра");
+    }
+
+    @Test
+    void shouldNotAddNullToHistory() {
+        // Проверяем, что история не содержит задач
+        assertEquals(0, taskManager.getHistory().size(), "История была не пуста");
+
+        // Пытаемся получить задачу, которой нету в трекере (менеджер в этом тесте в принципе не содержит задач)
+        taskManager.getBasicTaskById(999);
+
+        // Проверяем, что история по-прежнему пуста
+        assertEquals(0, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+    }
+
+    @Test
+    void historyShouldBeImmutable() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        // Получим задачи по id
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(2);
+
+        // Проверим, что задачи попали в историю
+        assertEquals(2, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+
+        // Получим историю просмотра и очистим её
+        List<Task> history = taskManager.getHistory();
+        history.clear();
+
+        // Проверим, что это действие никак не отразилось на истории в трекере задач
+        assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
     }
 }

@@ -10,27 +10,23 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     // Список просмотренных задач
     private final ArrayList<Task> history;
-    // Количество задач в истории просмотра
-    private final int depth;
-
-    // Количество задач в истории просмотра по умолчанию
-    private static final int DEFAULT_DEPTH = 10;
-
-    // Конструктор класса InMemoryHistoryManager
-    public InMemoryHistoryManager(int depth) {
-        this.depth = depth;
-        history = new ArrayList<>();
-    }
+    // Размер списка задач
+    private static final int MAX_SIZE = 10;
 
     // Конструктор класса InMemoryHistoryManager
     public InMemoryHistoryManager() {
-        this(DEFAULT_DEPTH);
+        history = new ArrayList<>();
     }
 
     // Добавить задачу в список
     @Override
     public void addTask(Task task) {
-        if (history.size() == depth) {
+        // Проверка на null
+        if (task == null) {
+            return;
+        }
+        // Удаляем первый элемент в списке, если размер списка исчерпан
+        if (history.size() == MAX_SIZE) {
             history.removeFirst();
         }
 
@@ -43,7 +39,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (history.isEmpty()) {
             return List.of();
         }
-
-        return history;
+        // Возвращаем новый список
+        return new ArrayList<>(history);
     }
 }
