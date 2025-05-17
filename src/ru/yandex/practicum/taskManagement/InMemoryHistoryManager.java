@@ -74,6 +74,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     // Поля связного списка
     private Node<Task> linkedListHead;
     private Node<Task> linkedListTail;
+    public int linkedListSize = 0;
     // Методы связного списка
     // Добавить задачу в конец списка
     private void linkLast(Task task) {
@@ -84,6 +85,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             linkedListHead = newTail;
         else
             oldTail.next = newTail;
+        linkedListSize++;
     }
     // Собрать все задачи в List<>
     public List<Task> getTasks() {

@@ -20,7 +20,7 @@ public class InMemoryTaskManager implements TaskManager {
     private int globalID;
 
     // Менеджер истории просмотра задач
-    private final HistoryManager historyManager;
+    public final HistoryManager historyManager;
 
     // Конструктор класса InMemoryTaskManager
     public InMemoryTaskManager(HistoryManager historyManager) {

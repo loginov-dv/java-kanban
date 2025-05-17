@@ -420,4 +420,29 @@ class InMemoryTaskManagerTest {
         assertFalse(taskManager.getHistory().contains(task1),
                 "Некорректное удаление задачи из истории при удалении из менеджера");
     }
+
+    @Test
+    void temp_HistoryManagerLinkedListTest() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        // Получим задачи по id
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(2);
+
+        assertEquals(2, ((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().size(),
+                "Некорректное добавление задач в историю просмотра");
+        assertEquals(2, ((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).linkedListSize,
+                "Некорректное добавление задач в историю просмотра");
+
+        assertTrue(((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().contains(task1), "" +
+                "Некорректное добавление задач в историю просмотра");
+        assertTrue(((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().contains(task2), "" +
+                "Некорректное добавление задач в историю просмотра");
+
+
+    }
 }
