@@ -17,7 +17,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     private final Map<Integer, Node<Task>> nodes = new HashMap<>();
 
     // Конструктор класса InMemoryHistoryManager
-    public InMemoryHistoryManager() { }
+    public InMemoryHistoryManager() {
+
+    }
 
     // Добавить задачу в список
     @Override
