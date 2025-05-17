@@ -18,7 +18,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canAddTasks() {
+    void shouldAddTasks() {
         // Создаём задачу (обычную)
         Task task = new Task(1, "task", "description", TaskStatus.NEW);
         taskManager.addBasicTask(task);
@@ -28,7 +28,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canAddEpics() {
+    void shouldAddEpics() {
         // Создаём эпик
         Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
@@ -38,7 +38,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canAddSubtasks() {
+    void shouldAddSubtasks() {
         // Создаём подзадачу
         Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10);
         taskManager.addSubtask(subtask);
@@ -48,7 +48,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canFindTask() {
+    void shouldFindTask() {
         // Создаём задачу и добавляем в трекер
         Task task = new Task(1, "task", "description", TaskStatus.NEW);
         taskManager.addBasicTask(task);
@@ -62,7 +62,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canFindEpic() {
+    void shouldFindEpic() {
         // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
@@ -76,7 +76,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void canFindSubtask() {
+    void shouldFindSubtask() {
         // Создаём подзадачу и добавляем в трекер
         Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10);
         taskManager.addSubtask(subtask);
@@ -122,7 +122,26 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldUpdateEpicIfAddedAndThenRemovedSubtask() {
+    void shouldUpdateEpicWhenAddedSubtask() {
+        // Создаём эпик и добавляем в трекер
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+
+        // Создаём подзадачу, которая ссылается на этот эпик
+        Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
+                TaskStatus.IN_PROGRESS, epic1.getID());
+        taskManager.addSubtask(subtask11);
+
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        Epic updatedEpic = taskManager.getEpicById(epic1.getID());
+        assertEquals(1, updatedEpic.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+        assertEquals(TaskStatus.IN_PROGRESS, updatedEpic.getStatus(),
+                "Некорректное обновление статуса эпика");
+    }
+
+    @Test
+    void shouldUpdateEpicWhenRemovedSubtask() {
         // Создаём эпик и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
         taskManager.addEpic(epic1);
@@ -152,7 +171,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldChangeEpicStatusIfSubtasksChangeTheirStatus() {
+    void shouldUpdateEpicStatusWhenUpdatedSubtask() {
         // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
@@ -190,7 +209,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldUpdateEpicsIfRemovedAllSubtasks() {
+    void shouldUpdateEpicsWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
         Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
@@ -199,9 +218,9 @@ class InMemoryTaskManagerTest {
 
         // Создаём подзадачи и добавляем в трекер
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID());
+                TaskStatus.IN_PROGRESS, epic1.getID());
         Subtask subtask21 = new Subtask(21, "Подзадача 21", "Описание",
-                TaskStatus.NEW, epic2.getID());
+                TaskStatus.DONE, epic2.getID());
         taskManager.addSubtask(subtask11);
         taskManager.addSubtask(subtask21);
 
@@ -220,13 +239,17 @@ class InMemoryTaskManagerTest {
         epic1 = taskManager.getEpicById(epic1.getID());
         assertEquals(0, epic1.getSubtaskIDs().size(),
                 "id подзадачи не был удалён из списка подзадач эпика");
+        assertEquals(TaskStatus.NEW, epic1.getStatus(),
+                "status эпика не был обновлён при удалении всех его подзадач");
         epic2 = taskManager.getEpicById(epic1.getID());
         assertEquals(0, epic2.getSubtaskIDs().size(),
                 "id подзадачи не был удалён из списка подзадач эпика");
+        assertEquals(TaskStatus.NEW, epic2.getStatus(),
+                "status эпика не был обновлён при удалении всех его подзадач");
     }
 
     @Test
-    void shouldUpdateSubtasksIfRemovedAllEpics() {
+    void shouldUpdateSubtasksWhenRemovedAllEpics() {
         // Создаём эпики и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
         Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
@@ -260,7 +283,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldAddTaskToHistory() {
+    void shouldAddSingleTaskToHistory() {
         // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
@@ -291,8 +314,8 @@ class InMemoryTaskManagerTest {
                 "Эпик в истории просмотра содержит подзадачи, хотя на момент вызова getEpicById() их не было");
     }
 
-    /*@Test
-    void shouldKeepHistoryLimit() {
+    @Test
+    void shouldAddMultipleTasksToHistory() {
         // Создаём эпик
         Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic);
@@ -302,11 +325,12 @@ class InMemoryTaskManagerTest {
                 TaskStatus.NEW, 10);
         taskManager.addSubtask(subtask);
 
-        // Проверим, что размер списка истории соответствует количеству вызовов методов получения задач\
+        // Проверим, что размер списка истории соответствует количеству вызовов методов получения задач
         taskManager.getEpicById(10);
         taskManager.getSubtaskById(100);
         assertEquals(2, taskManager.getHistory().size(),
-                "Некорректное добавление задач в историю просмотра");
+                "Количество задач в истории просмотра не соответствует количеству вызовов методов для " +
+                        "получения задач");
         // Проверим состав списка
         ArrayList<Integer> expectedList = new ArrayList<>(List.of(10, 100));
         ArrayList<Integer> actualList = new ArrayList<>();
@@ -314,46 +338,8 @@ class InMemoryTaskManagerTest {
             actualList.add(task.getID());
         }
         assertArrayEquals(expectedList.toArray(), actualList.toArray(),
-                "Некорректное добавление задач в историю просмотра");
-        // По умолчанию "глубина хранения" равна 10
-        // Ещё 8 раз запросим подзадачу, чтобы достичь лимита списка
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        // Проверим, что размер списка соответствует количеству вызовов методов
-        assertEquals(10, taskManager.getHistory().size(),
-                "Некорректное добавление задач в историю просмотра");
-        // Проверим состав списка
-        expectedList = new ArrayList<>(List.of(10, 100, 100, 100, 100, 100, 100 ,100 ,100 ,100));
-        actualList = new ArrayList<>();
-        for (Task task : taskManager.getHistory()) {
-            actualList.add(task.getID());
-        }
-        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
-                "Некорректное добавление задач в историю просмотра");
-        // Ещё пару раз запросим подзадачу и проверим, что количество задач в истории не изменилось
-        taskManager.getSubtaskById(100);
-        taskManager.getSubtaskById(100);
-        assertEquals(10, taskManager.getHistory().size(),
-                "Некорректное добавление задач в историю просмотра");
-        // Проверим, что при исчерпании размера списка будет удалён самый старый элемент
-        // Т.е. в истории не должно быть эпика
-        assertFalse(taskManager.getHistory().contains(epic),
-                "Некорректное добавление задач в историю просмотра");
-        // Проверим состав списка
-        expectedList = new ArrayList<>(List.of(100, 100, 100, 100, 100, 100, 100, 100, 100, 100));
-        actualList = new ArrayList<>();
-        for (Task task : taskManager.getHistory()) {
-            actualList.add(task.getID());
-        }
-        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
-                "Некорректное добавление задач в историю просмотра");
-    }*/
+                "Некорректные задачи в истории просмотра задач");
+    }
 
     @Test
     void shouldNotAddNullToHistory() {
@@ -419,35 +405,38 @@ class InMemoryTaskManagerTest {
                 "Некорректное удаление задачи из истории при удалении из менеджера");
     }
 
-    // тест на уникальность задач в истории
-
-    /*@Test
-    void temp_HistoryManagerLinkedListTest() {
+    @Test
+    void multipleTasksShouldBeRemovedFromHistoryWhenRemovedFromManager() {
         // Создадим несколько задач и добавим в трекер
         Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
         Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
+        // Создадим эпик и добавим в трекер
+        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic);
 
-        // Получим задачи по id
+        // Получим задачи и эпик по id
         taskManager.getBasicTaskById(1);
         taskManager.getBasicTaskById(2);
+        taskManager.getEpicById(10);
 
-        assertEquals(2, ((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().size(),
-                "Некорректное добавление задач в историю просмотра");
-        assertEquals(2, ((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).linkedListSize,
-                "Некорректное добавление задач в историю просмотра");
-
-        assertTrue(((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().contains(task1), "" +
-                "Некорректное добавление задач в историю просмотра");
-        assertTrue(((InMemoryHistoryManager)((InMemoryTaskManager)taskManager).historyManager).getTasks().contains(task2), "" +
+        // Проверим, что задачи попали в историю
+        assertEquals(3, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
 
+        // Удалим все задачи (обычные)
+        taskManager.removeAllBasicTasks();
 
-    }*/
+        // Проверим корректность удаления из истории (должен остаться только эпик)
+        assertEquals(1, taskManager.getHistory().size(),
+                "Некорректное удаление задач из истории просмотра");
+        assertTrue(taskManager.getHistory().contains(epic),
+                "История просмотра не содержит необходимую задачу");
+    }
 
     @Test
-    void shouldKeepOnlyRecentViewOfTaskInHistory() {
+    void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTaskState() {
         // Создадим несколько задач и добавим в трекер
         Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
         Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
@@ -461,9 +450,9 @@ class InMemoryTaskManagerTest {
         // Проверим корректность добавления задач в историю
         assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
-        assertTrue(taskManager.getHistory().contains(task1), "" +
+        assertTrue(taskManager.getHistory().contains(task1),
                 "Некорректное добавление задач в историю просмотра");
-        assertTrue(taskManager.getHistory().contains(task2), "" +
+        assertTrue(taskManager.getHistory().contains(task2),
                 "Некорректное добавление задач в историю просмотра");
 
         // Изменим поле description у задачи с id = 1 и обновим её в трекере
@@ -473,7 +462,7 @@ class InMemoryTaskManagerTest {
         // Предварительно проверим, что в истории хранится предыдущее состояние задачи с id = 1
         for (Task task : taskManager.getHistory()) {
             if (task.getID() == task1.getID()) {
-                assertEquals("description", task.getDescription(), "" +
+                assertEquals("description", task.getDescription(),
                         "Некорректное добавление задач в историю просмотра");
             }
         }
@@ -484,14 +473,14 @@ class InMemoryTaskManagerTest {
         // Проверим, что в истории теперь хранится новое состояние задачи с id = 1
         for (Task task : taskManager.getHistory()) {
             if (task.getID() == task1.getID()) {
-                assertEquals("new description", task.getDescription(), "" +
-                        "Некорректное добавление задач в историю просмотра");
+                assertEquals("new description", task.getDescription(),
+                        "Некорректное обновление задачи в истории просмотра");
             }
         }
     }
 
     @Test
-    void testname() {
+    void shouldKeepOnlyRecentViewOfTaskInHistoryWhenTaskViewedMultipleTimes() {
         // Создадим несколько задач и добавим в трекер
         Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
         Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
@@ -506,7 +495,7 @@ class InMemoryTaskManagerTest {
         taskManager.getBasicTaskById(1);
 
         // Проверим, что задачи попали в историю
-        // При этом ожидаем, что в истории должно быть всего две задачи, несмотря на то, что
+        // В истории должно быть всего две задачи, несмотря на то, что
         // одна из задач была запрошена несколько раз
         assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
