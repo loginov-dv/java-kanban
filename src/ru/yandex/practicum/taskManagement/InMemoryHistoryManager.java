@@ -3,19 +3,21 @@ package ru.yandex.practicum.taskManagement;
 import ru.yandex.practicum.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Класс для управления историей просмотра задач
 public class InMemoryHistoryManager implements HistoryManager {
 
     // Список просмотренных задач
-    private final ArrayList<Task> history;
+    //private final ArrayList<Task> history;
     // Размер списка задач
-    private static final int MAX_SIZE = 10;
+    //private static final int MAX_SIZE = 10;
 
     // Конструктор класса InMemoryHistoryManager
     public InMemoryHistoryManager() {
-        history = new ArrayList<>();
+        //history = new ArrayList<>();
     }
 
     // Добавить задачу в список
@@ -26,29 +28,38 @@ public class InMemoryHistoryManager implements HistoryManager {
             return;
         }
         // Удаляем первый элемент в списке, если размер списка исчерпан
-        if (history.size() == MAX_SIZE) {
+        /*if (history.size() == MAX_SIZE) {
             history.removeFirst();
+        }*/
+
+        //history.add(task);
+
+        Node<Task> node = linkLast(task);
+
+        if (map.containsKey(task.getID())) {
+            Node<Task> nodeToRemove = map.get(task.getID());
+            removeNode(nodeToRemove);
         }
 
-        history.add(task);
-
-        linkLast(task);
+        map.put(task.getID(), node);
     }
 
     // Вернуть список просмотренных задач
     @Override
     public List<Task> getHistory() {
-        if (history.isEmpty()) {
+        /*if (history.isEmpty()) {
             return List.of();
         }
         // Возвращаем новый список
-        return new ArrayList<>(history);
+        return new ArrayList<>(history);*/
+
+        return getTasks();
     }
 
     // Удалить все вхождения задачи с указанным id из истории
     @Override
     public void removeTask(int id) {
-        List<Task> tasksToRemove = new ArrayList<>();
+        /*List<Task> tasksToRemove = new ArrayList<>();
 
         for (Task task : history) {
             if (task.getID() == id) {
@@ -56,7 +67,15 @@ public class InMemoryHistoryManager implements HistoryManager {
             }
         }
 
-        history.removeAll(tasksToRemove);
+        history.removeAll(tasksToRemove);*/
+
+        if (!map.containsKey(id)) {
+            return;
+        }
+
+        Node<Task> nodeToRemove = map.remove(id);
+
+        removeNode(nodeToRemove);
     }
 
     // Узел связного списка
@@ -67,8 +86,8 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         public Node(Node<T> prev, T data, Node<T> next) {
             this.data = data;
-            this.next = null;
-            this.prev = null;
+            this.next = next;
+            this.prev = prev;
         }
     }
     // Поля связного списка
@@ -77,7 +96,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     public int linkedListSize = 0;
     // Методы связного списка
     // Добавить задачу в конец списка
-    private void linkLast(Task task) {
+    private Node<Task> linkLast(Task task) {
         Node<Task> oldTail = linkedListTail;
         Node<Task> newTail = new Node<>(linkedListTail, task, null);
         linkedListTail = newTail;
@@ -86,9 +105,11 @@ public class InMemoryHistoryManager implements HistoryManager {
         else
             oldTail.next = newTail;
         linkedListSize++;
+
+        return newTail;
     }
     // Собрать все задачи в List<>
-    public List<Task> getTasks() {
+    private List<Task> getTasks() {
         List<Task> listOfTasks = new ArrayList<>();
 
         Node<Task> next = linkedListHead;
@@ -100,4 +121,13 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         return listOfTasks;
     }
+    // Удалить узел
+    private void removeNode(Node<Task> node) {
+        Node<Task> prev = node.prev;
+        Node<Task> next = node.next;
+        prev.next = next;
+        next.prev = prev;
+    }
+    // Хешмапа
+    private Map<Integer, Node<Task>> map = new HashMap<>();
 }
