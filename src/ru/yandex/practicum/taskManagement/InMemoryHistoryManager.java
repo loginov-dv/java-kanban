@@ -31,6 +31,8 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         history.add(task);
+
+        linkLast(task);
     }
 
     // Вернуть список просмотренных задач
@@ -55,5 +57,45 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         history.removeAll(tasksToRemove);
+    }
+
+    // Узел связного списка
+    private class Node<T> {
+        public T data;
+        public Node<T> next;
+        public Node<T> prev;
+
+        public Node(Node<T> prev, T data, Node<T> next) {
+            this.data = data;
+            this.next = null;
+            this.prev = null;
+        }
+    }
+    // Поля связного списка
+    private Node<Task> linkedListHead;
+    private Node<Task> linkedListTail;
+    // Методы связного списка
+    // Добавить задачу в конец списка
+    private void linkLast(Task task) {
+        Node<Task> oldTail = linkedListTail;
+        Node<Task> newTail = new Node<>(linkedListTail, task, null);
+        linkedListTail = newTail;
+        if (oldTail == null)
+            linkedListHead = newTail;
+        else
+            oldTail.next = newTail;
+    }
+    // Собрать все задачи в List<>
+    public List<Task> getTasks() {
+        List<Task> listOfTasks = new ArrayList<>();
+
+        Node<Task> next = linkedListHead;
+
+        while(next != null) {
+            listOfTasks.add(next.data);
+            next = next.next;
+        }
+
+        return listOfTasks;
     }
 }
