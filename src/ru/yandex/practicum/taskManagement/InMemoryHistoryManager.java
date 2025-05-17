@@ -125,8 +125,18 @@ public class InMemoryHistoryManager implements HistoryManager {
     private void removeNode(Node<Task> node) {
         Node<Task> prev = node.prev;
         Node<Task> next = node.next;
-        prev.next = next;
-        next.prev = prev;
+        // Если удаляемый node является head
+        if (prev == null) {
+            linkedListHead = next;
+        } else {
+            prev.next = next;
+        }
+        // Если удаляемый node является tail
+        if (next == null) {
+            linkedListTail = prev;
+        } else {
+            next.prev = prev;
+        }
     }
     // Хешмапа
     private Map<Integer, Node<Task>> map = new HashMap<>();

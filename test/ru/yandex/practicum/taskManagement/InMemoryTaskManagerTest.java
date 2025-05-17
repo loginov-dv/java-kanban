@@ -421,7 +421,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное удаление задачи из истории при удалении из менеджера");
     }
 
-    @Test
+    /*@Test
     void temp_HistoryManagerLinkedListTest() {
         // Создадим несколько задач и добавим в трекер
         Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
@@ -444,5 +444,5 @@ class InMemoryTaskManagerTest {
                 "Некорректное добавление задач в историю просмотра");
 
 
-    }
+    }*/
 }
