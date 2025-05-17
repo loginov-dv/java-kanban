@@ -19,7 +19,7 @@ public class Epic extends Task {
         this(id, name, description, status);
         // Не добавляем, если id подзадачи равен null или равен id самого эпика
         for (Integer subtaskID : subtaskIDs) {
-            if (subtaskID != null && subtaskID != Integer.valueOf(id)) {
+            if (subtaskID != null && !subtaskID.equals(id)) {
                 this.subtaskIDs.add(subtaskID);
             }
         }
