@@ -60,6 +60,11 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление всех задач (обычных)
     @Override
     public void removeAllBasicTasks() {
+        // Удаляем задачи из истории
+        for (Integer taskId : basicTasks.keySet()) {
+            historyManager.removeTask(taskId);
+        }
+        // Удаляем задачи из трекера
         basicTasks.clear();
     }
     // Удаление всех подзадач
@@ -67,10 +72,13 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllSubtasks() {
         for (Epic epic : epics.values()) {
             // Удаляем все подзадачи из эпика и задаём статус NEW
-            // Изменена логика: сеттеры больше не используются, эпики пересоздаются
             updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW));
         }
-
+        // Удаляем подзадачи из истории
+        for (Integer taskId : subtasks.keySet()) {
+            historyManager.removeTask(taskId);
+        }
+        // Удаляем подзадачи из трекера
         subtasks.clear();
     }
     // Удаление всех эпиков
@@ -82,7 +90,11 @@ public class InMemoryTaskManager implements TaskManager {
             updateSubtask(new Subtask(subtask.getID(), subtask.getName(), subtask.getDescription(),
                     subtask.getStatus(), null));
         }
-
+        // Удаляем эпики из истории
+        for (Integer taskId : epics.keySet()) {
+            historyManager.removeTask(taskId);
+        }
+        // Удаляем эпики из трекера
         epics.clear();
     }
 
@@ -221,12 +233,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeBasicTaskById(int id) {
         basicTasks.remove(id);
+        historyManager.removeTask(id);
     }
     // Удаление подзадачи по id
     @Override
     public void removeSubtaskById(int id) {
         Subtask subtask = subtasks.get(id);
         subtasks.remove(id);
+        historyManager.removeTask(id);
 
         // Обновляем эпик
         // Если epicID = null, подзадача без эпика
@@ -253,6 +267,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         epics.remove(id);
+        historyManager.removeTask(id);
     }
 
     // Получение всех подзадач для указанного эпика
