@@ -13,6 +13,7 @@ public class Epic extends Task {
         super(id, name, description, status);
         subtaskIDs = new ArrayList<>();
     }
+
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
         this(id, name, description, status);
@@ -34,7 +35,7 @@ public class Epic extends Task {
         String resultSuper = super.toString();
         String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
         String result = "Epic" + contentSuper;
-        result += subtaskIDs.isEmpty() ? ", subtasks=empty}" : (", subtasks.size=" + subtaskIDs.size() + "}") ;
+        result += subtaskIDs.isEmpty() ? ", subtasks=empty}" : (", subtasks.size=" + subtaskIDs.size() + "}");
 
         return result;
     }
