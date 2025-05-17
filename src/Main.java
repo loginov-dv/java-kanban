@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
 
-        System.out.println("=> Создание двух задач и двух эпиков (с двумя и одной подзадачами):\n");
+        System.out.println("=> Создайте две задачи, эпик с тремя подзадачами и эпик без подзадач:\n");
 
         Task task1 = new Task(inMemoryTaskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW);
         Task task2 = new Task(inMemoryTaskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW);
@@ -22,49 +22,51 @@ public class Main {
                 TaskStatus.NEW, epic1.getID());
         Subtask subtask12 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 12", "Описание",
                 TaskStatus.NEW, epic1.getID());
-        Subtask subtask21 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 21", "Описание",
-                TaskStatus.NEW, epic2.getID());
+        Subtask subtask13 = new Subtask(inMemoryTaskManager.nextId(), "Подзадача 13", "Описание",
+                TaskStatus.NEW, epic1.getID());
         inMemoryTaskManager.addSubtask(subtask11);
         inMemoryTaskManager.addSubtask(subtask12);
-        inMemoryTaskManager.addSubtask(subtask21);
+        inMemoryTaskManager.addSubtask(subtask13);
 
         printAllTasks(inMemoryTaskManager);
         System.out.println();
 
-        System.out.println("=> Изменение статусов задач:\n");
+        System.out.println("=> 2. Запросите созданные задачи несколько раз в разном порядке. " +
+                "После каждого запроса выведите историю и убедитесь, что в ней нет повторов.:\n");
 
-        inMemoryTaskManager.updateBasicTask(new Task(task1.getID(), task1.getName(), "Новое описание",
-                TaskStatus.IN_PROGRESS));
-        inMemoryTaskManager.updateSubtask(new Subtask(subtask11.getID(), subtask11.getName(), "Новое описание",
-                TaskStatus.IN_PROGRESS, epic1.getID()));
-        inMemoryTaskManager.updateSubtask(new Subtask(subtask21.getID(), subtask21.getName(), subtask21.getDescription(),
-                TaskStatus.DONE, epic2.getID()));
+        inMemoryTaskManager.getBasicTaskById(task1.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getBasicTaskById(task1.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getSubtaskById(subtask11.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getEpicById(epic1.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getSubtaskById(subtask11.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getBasicTaskById(task1.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getSubtaskById(subtask12.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getSubtaskById(subtask13.getID());
+        printHistory(inMemoryTaskManager);
+        inMemoryTaskManager.getSubtaskById(subtask12.getID());
+        printHistory(inMemoryTaskManager);
 
-        printAllTasks(inMemoryTaskManager);
-        System.out.println();
+        System.out.println("=> Удалите задачу, которая есть в истории, и проверьте, " +
+                "что при печати она не будет выводиться:\n");
 
-        System.out.println("=> Удаление одной задачи и одного эпика:\n");
+        inMemoryTaskManager.removeBasicTaskById(task1.getID());
+        printHistory(inMemoryTaskManager);
 
-        inMemoryTaskManager.removeBasicTaskById(2);
-        inMemoryTaskManager.removeEpicById(3);
+        System.out.println("=> Удалите эпик с тремя подзадачами и убедитесь, что из истории удалился как сам эпик, " +
+                "так и все его подзадачи:\n");
 
-        printAllTasks(inMemoryTaskManager);
-        System.out.println();
-
-        System.out.println("*** s5 ***");
-        System.out.println("=> Вывод пустой истории:");
-        var viewedTasks = inMemoryTaskManager.getHistory();
-        System.out.println(viewedTasks.size());
-        inMemoryTaskManager.getBasicTaskById(1);
-        inMemoryTaskManager.getSubtaskById(6);
-        inMemoryTaskManager.getEpicById(4);
-        inMemoryTaskManager.getBasicTaskById(1);
-        System.out.println("=> Вывод непустой истории:");
-        viewedTasks = inMemoryTaskManager.getHistory();
-        System.out.println(viewedTasks.size());
-        for (Task task : viewedTasks) {
-            System.out.println("\t" + task.getID());
-        }
+        inMemoryTaskManager.removeEpicById(epic1.getID());
+        inMemoryTaskManager.removeSubtaskById(subtask11.getID());
+        inMemoryTaskManager.removeSubtaskById(subtask12.getID());
+        inMemoryTaskManager.removeSubtaskById(subtask13.getID());
+        printHistory(inMemoryTaskManager);
     }
 
     private static void printAllTasks(TaskManager manager) {
@@ -85,11 +87,15 @@ public class Main {
             System.out.println(subtask);
         }
 
+        printHistory(manager);
+
+        System.out.println("*".repeat(20));
+    }
+
+    private static void printHistory(TaskManager manager) {
         System.out.println("История:");
         for (Task task : manager.getHistory()) {
             System.out.println(task);
         }
-
-        System.out.println("*".repeat(20));
     }
 }

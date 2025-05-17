@@ -3,43 +3,120 @@ package ru.yandex.practicum.taskManagement;
 import ru.yandex.practicum.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Класс для управления историей просмотра задач
 public class InMemoryHistoryManager implements HistoryManager {
-
-    // Список просмотренных задач
-    private final ArrayList<Task> history;
-    // Размер списка задач
-    private static final int MAX_SIZE = 10;
+    // Первый элемент в связном списке задач
+    private Node<Task> head;
+    // Последний элемент в связном списке задач
+    private Node<Task> tail;
+    // Мапа с id задач и соответствующими узлами
+    private final Map<Integer, Node<Task>> nodes = new HashMap<>();
 
     // Конструктор класса InMemoryHistoryManager
     public InMemoryHistoryManager() {
-        history = new ArrayList<>();
+
     }
 
     // Добавить задачу в список
     @Override
     public void addTask(Task task) {
-        // Проверка на null
+        // Проверка задачи на null
         if (task == null) {
             return;
         }
-        // Удаляем первый элемент в списке, если размер списка исчерпан
-        if (history.size() == MAX_SIZE) {
-            history.removeFirst();
+        // Создаём новый узел в конце связного списка
+        Node<Task> node = linkLast(task);
+        // Удаляем старый узел (при наличии)
+        if (nodes.containsKey(task.getID())) {
+            Node<Task> nodeToRemove = nodes.get(task.getID());
+            removeNode(nodeToRemove);
         }
-
-        history.add(task);
+        // Обновляем узел в хешмапе
+        nodes.put(task.getID(), node);
     }
 
     // Вернуть список просмотренных задач
     @Override
     public List<Task> getHistory() {
-        if (history.isEmpty()) {
-            return List.of();
+        return getTasks();
+    }
+
+    // Удалить задачу из истории
+    @Override
+    public void removeTask(int id) {
+        if (!nodes.containsKey(id)) {
+            return;
         }
-        // Возвращаем новый список
-        return new ArrayList<>(history);
+        // Находим связанный узел
+        Node<Task> nodeToRemove = nodes.remove(id);
+        // Удаляем узел
+        removeNode(nodeToRemove);
+    }
+
+    // Узел связного списка
+    private static class Node<T> {
+        // Объект, который хранится в узле
+        public T data;
+        // Следующий узел
+        public Node<T> next;
+        // Предыдущий узел
+        public Node<T> prev;
+
+        // Конструктор класса Node<T>
+        public Node(Node<T> prev, T data, Node<T> next) {
+            this.data = data;
+            this.next = next;
+            this.prev = prev;
+        }
+    }
+
+    // Добавить задачу в конец списка
+    private Node<Task> linkLast(Task task) {
+        Node<Task> oldTail = tail;
+        Node<Task> newTail = new Node<>(tail, task, null);
+        tail = newTail;
+        // Если список был пуст, то новый узел будет являться head
+        if (oldTail == null) {
+            head = newTail;
+        } else {
+            oldTail.next = newTail;
+        }
+
+        return newTail;
+    }
+
+    // Собрать все задачи в List<>
+    private List<Task> getTasks() {
+        List<Task> listOfTasks = new ArrayList<>();
+        Node<Task> next = head;
+
+        while (next != null) {
+            listOfTasks.add(next.data);
+            next = next.next;
+        }
+
+        return listOfTasks;
+    }
+
+    // Удалить узел
+    private void removeNode(Node<Task> node) {
+        Node<Task> prev = node.prev;
+        Node<Task> next = node.next;
+        // Если удаляемый node является head
+        if (prev == null) {
+            head = next;
+        } else {
+            prev.next = next;
+        }
+        // Если удаляемый node является tail
+        if (next == null) {
+            tail = prev;
+        } else {
+            next.prev = prev;
+        }
     }
 }
