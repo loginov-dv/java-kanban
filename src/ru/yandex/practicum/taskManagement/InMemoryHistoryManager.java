@@ -42,4 +42,18 @@ public class InMemoryHistoryManager implements HistoryManager {
         // Возвращаем новый список
         return new ArrayList<>(history);
     }
+
+    // Удалить все вхождения задачи с указанным id из истории
+    @Override
+    public void removeTask(int id) {
+        List<Task> tasksToRemove = new ArrayList<>();
+
+        for (Task task : history) {
+            if (task.getID() == id) {
+                tasksToRemove.add(task);
+            }
+        }
+
+        history.removeAll(tasksToRemove);
+    }
 }
