@@ -57,7 +57,7 @@ public class Task {
 
     @Override
     public String toString() {
-        String result = "Task{id=" + id +", ";
+        String result = "Task{id=" + id + ", ";
 
         result += name == null ? "name=null, " : ("name=" + name + ", ");
         result += description == null ? "description=null, " : ("description.length=" + description.length() + ", ");
