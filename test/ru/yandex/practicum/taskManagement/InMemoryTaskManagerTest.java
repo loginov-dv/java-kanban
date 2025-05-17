@@ -291,7 +291,7 @@ class InMemoryTaskManagerTest {
                 "Эпик в истории просмотра содержит подзадачи, хотя на момент вызова getEpicById() их не было");
     }
 
-    @Test
+    /*@Test
     void shouldKeepHistoryLimit() {
         // Создаём эпик
         Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
@@ -353,7 +353,7 @@ class InMemoryTaskManagerTest {
         }
         assertArrayEquals(expectedList.toArray(), actualList.toArray(),
                 "Некорректное добавление задач в историю просмотра");
-    }
+    }*/
 
     @Test
     void shouldNotAddNullToHistory() {
@@ -404,11 +404,9 @@ class InMemoryTaskManagerTest {
         // Получим задачи по id
         taskManager.getBasicTaskById(1);
         taskManager.getBasicTaskById(2);
-        // Получим задачу с id = 1 ещё раз
-        taskManager.getBasicTaskById(1);
 
-        // Проверим, что задачи попали в историю (задача с id = 1 должна попасть дважды)
-        assertEquals(3, taskManager.getHistory().size(),
+        // Проверим, что задачи попали в историю
+        assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
 
         // Удалим задачу из трекера
@@ -420,6 +418,8 @@ class InMemoryTaskManagerTest {
         assertFalse(taskManager.getHistory().contains(task1),
                 "Некорректное удаление задачи из истории при удалении из менеджера");
     }
+
+    // тест на уникальность задач в истории
 
     /*@Test
     void temp_HistoryManagerLinkedListTest() {
@@ -445,4 +445,71 @@ class InMemoryTaskManagerTest {
 
 
     }*/
+
+    @Test
+    void shouldKeepOnlyRecentViewOfTaskInHistory() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        // Получим задачи по id
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(2);
+
+        // Проверим корректность добавления задач в историю
+        assertEquals(2, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+        assertTrue(taskManager.getHistory().contains(task1), "" +
+                "Некорректное добавление задач в историю просмотра");
+        assertTrue(taskManager.getHistory().contains(task2), "" +
+                "Некорректное добавление задач в историю просмотра");
+
+        // Изменим поле description у задачи с id = 1 и обновим её в трекере
+        Task task1_upd = new Task(task1.getID(), "Task1", "new description", TaskStatus.NEW);
+        taskManager.updateBasicTask(task1_upd);
+
+        // Предварительно проверим, что в истории хранится предыдущее состояние задачи с id = 1
+        for (Task task : taskManager.getHistory()) {
+            if (task.getID() == task1.getID()) {
+                assertEquals("description", task.getDescription(), "" +
+                        "Некорректное добавление задач в историю просмотра");
+            }
+        }
+
+        // Получим задачу с id = 1
+        taskManager.getBasicTaskById(1);
+
+        // Проверим, что в истории теперь хранится новое состояние задачи с id = 1
+        for (Task task : taskManager.getHistory()) {
+            if (task.getID() == task1.getID()) {
+                assertEquals("new description", task.getDescription(), "" +
+                        "Некорректное добавление задач в историю просмотра");
+            }
+        }
+    }
+
+    @Test
+    void testname() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        // Получим задачи по id
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(2);
+        // Ещё несколько раз запросим задачу с id = 1
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(1);
+
+        // Проверим, что задачи попали в историю
+        // При этом ожидаем, что в истории должно быть всего две задачи, несмотря на то, что
+        // одна из задач была запрошена несколько раз
+        assertEquals(2, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+    }
+
 }
