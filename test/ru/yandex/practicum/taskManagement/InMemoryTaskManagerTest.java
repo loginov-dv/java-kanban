@@ -392,4 +392,32 @@ class InMemoryTaskManagerTest {
         assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
     }
+
+    @Test
+    void singleTaskShouldBeRemovedFromHistoryWhenRemovedFromManager() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        // Получим задачи по id
+        taskManager.getBasicTaskById(1);
+        taskManager.getBasicTaskById(2);
+        // Получим задачу с id = 1 ещё раз
+        taskManager.getBasicTaskById(1);
+
+        // Проверим, что задачи попали в историю (задача с id = 1 должна попасть дважды)
+        assertEquals(3, taskManager.getHistory().size(),
+                "Некорректное добавление задач в историю просмотра");
+
+        // Удалим задачу из трекера
+        taskManager.removeBasicTaskById(1);
+
+        // Проверим корректность удаления из истории (осталась только одна задача с id = 2)
+        assertEquals(1, taskManager.getHistory().size(),
+                "Некорректное удаление задачи из истории при удалении из менеджера");
+        assertFalse(taskManager.getHistory().contains(task1),
+                "Некорректное удаление задачи из истории при удалении из менеджера");
+    }
 }
