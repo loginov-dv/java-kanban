@@ -63,9 +63,6 @@ public class Main {
                 "так и все его подзадачи:\n");
 
         inMemoryTaskManager.removeEpicById(epic1.getID());
-        inMemoryTaskManager.removeSubtaskById(subtask11.getID());
-        inMemoryTaskManager.removeSubtaskById(subtask12.getID());
-        inMemoryTaskManager.removeSubtaskById(subtask13.getID());
         printHistory(inMemoryTaskManager);
     }
 
