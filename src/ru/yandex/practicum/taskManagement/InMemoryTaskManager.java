@@ -86,7 +86,9 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление всех эпиков
     @Override
     public void removeAllEpics() {
-        for (Integer epicId : epics.keySet()) {
+        // Коллекция id эпиков
+        List<Integer> epicIds = new ArrayList<>(epics.keySet());
+        for (Integer epicId : epicIds) {
             removeEpicById(epicId);
         }
     }

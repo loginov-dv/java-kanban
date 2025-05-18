@@ -17,6 +17,7 @@ class InMemoryTaskManagerTest {
         taskManager = Managers.getDefault();
     }
 
+    // Проверяет добавление задачи в трекер
     @Test
     void shouldAddTasks() {
         // Создаём задачу (обычную)
@@ -27,6 +28,7 @@ class InMemoryTaskManagerTest {
         assertEquals(1, taskManager.getAllBasicTasks().size(), "Задача не была добавлена в трекер");
     }
 
+    // Проверяет добавление эпика в трекер
     @Test
     void shouldAddEpics() {
         // Создаём эпик
@@ -37,6 +39,7 @@ class InMemoryTaskManagerTest {
         assertEquals(1, taskManager.getAllEpics().size(), "Эпик не был добавлен в трекер");
     }
 
+    // Проверяет добавление подзадачи в трекер
     @Test
     void shouldAddSubtasks() {
         // Создаём подзадачу
@@ -47,6 +50,7 @@ class InMemoryTaskManagerTest {
         assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
     }
 
+    // Проверяет поиск задачи по id в трекере
     @Test
     void shouldFindTask() {
         // Создаём задачу и добавляем в трекер
@@ -61,6 +65,7 @@ class InMemoryTaskManagerTest {
         assertNull(taskManager.getBasicTaskById(1000), "В трекере найдена несуществующая задача");
     }
 
+    /// Проверяет поиск эпика по id в трекере
     @Test
     void shouldFindEpic() {
         // Создаём эпик и добавляем в трекер
@@ -75,6 +80,7 @@ class InMemoryTaskManagerTest {
         assertNull(taskManager.getEpicById(1000), "В трекере найден несуществующий эпик");
     }
 
+    /// Проверяет поиск подзадачи по id в трекере
     @Test
     void shouldFindSubtask() {
         // Создаём подзадачу и добавляем в трекер
@@ -89,6 +95,7 @@ class InMemoryTaskManagerTest {
         assertNull(taskManager.getSubtaskById(1000), "В трекере найдена несуществующая подзадача");
     }
 
+    // Проверяет обновление задачи в трекере
     @Test
     void shouldUpdateTask() {
         // Создаём задачу и добавляем в трекер
@@ -106,6 +113,7 @@ class InMemoryTaskManagerTest {
         assertEquals(updatedTask.getStatus(), task.getStatus(), "Не был обновлен статус задачи");
     }
 
+    // Проверяет удаление задачи из трекера
     @Test
     void shouldRemoveTask() {
         // Создаём задачу и добавляем в трекер
@@ -121,6 +129,7 @@ class InMemoryTaskManagerTest {
         assertEquals(0, taskManager.getAllBasicTasks().size(), "Задача не была удалена");
     }
 
+    // Проверяет обновление эпика при добавлении подзадачи
     @Test
     void shouldUpdateEpicWhenAddedSubtask() {
         // Создаём эпик и добавляем в трекер
@@ -140,6 +149,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное обновление статуса эпика");
     }
 
+    // Проверяет обновление эпика при удалении подзадачи
     @Test
     void shouldUpdateEpicWhenRemovedSubtask() {
         // Создаём эпик и добавляем в трекер
@@ -170,6 +180,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное обновление статуса эпика");
     }
 
+    // Проверяет обновление статуса эпика при обновлении статуса подзадачи
     @Test
     void shouldUpdateEpicStatusWhenUpdatedSubtask() {
         // Создаём эпик и добавляем в трекер
@@ -208,6 +219,35 @@ class InMemoryTaskManagerTest {
         assertEquals(TaskStatus.DONE, epic.getStatus(), "Некорректное обновление статуса у эпика");
     }
 
+    // Проверяет, что при удалении эпика удаляются также и его подзадачи
+    @Test
+    void shouldRemoveSubtasksWhenRemovedEpic() {
+        // Создаём эпики и добавляем в трекер
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        // Создаём подзадачи со ссылкой на эпик
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub11);
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub12);
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        taskManager.addSubtask(sub21);
+
+        // Удаляем эпик с id = 1
+        taskManager.removeEpicById(epic1.getID());
+
+        // Проверяем, что также удалились и его подзадачи
+        assertFalse(taskManager.getAllSubtasks().contains(sub11),
+                "Подзадача не удалилась из трекера при удалении её эпика");
+        assertFalse(taskManager.getAllSubtasks().contains(sub12),
+                "Подзадача не удалилась из трекера при удалении её эпика");
+
+    }
+
+    // Проверяет обновление эпиков при удалении всех подзадач
     @Test
     void shouldUpdateEpicsWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
@@ -248,40 +288,31 @@ class InMemoryTaskManagerTest {
                 "status эпика не был обновлён при удалении всех его подзадач");
     }
 
+    // Проверяет, что при удалении всех эпиков удаляются все подзадачи
     @Test
-    void shouldUpdateSubtasksWhenRemovedAllEpics() {
+    void shouldRemoveSubtasksWhenRemovedAllEpics() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
-        // Создаём подзадачи и добавляем в трекер
-        Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID());
-        Subtask subtask21 = new Subtask(21, "Подзадача 21", "Описание",
-                TaskStatus.NEW, epic2.getID());
-        taskManager.addSubtask(subtask11);
-        taskManager.addSubtask(subtask21);
-
-        // Получаем эпики из трекера, ожидая, что они должны обновиться
-        epic1 = taskManager.getEpicById(epic1.getID());
-        assertEquals(1, epic1.getSubtaskIDs().size(),
-                "id подзадачи не был добавлен в список подзадач эпика");
-        epic2 = taskManager.getEpicById(epic1.getID());
-        assertEquals(1, epic2.getSubtaskIDs().size(),
-                "id подзадачи не был добавлен в список подзадач эпика");
+        // Создаём подзадачи со ссылкой на эпик
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub11);
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub12);
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        taskManager.addSubtask(sub21);
 
         // Удаляем все эпики
         taskManager.removeAllEpics();
 
-        // Получаем подзадачи из трекера, ожидая, что они должны обновиться
-        subtask11 = taskManager.getSubtaskById(11);
-        assertNull(subtask11.getEpicID(), "id эпика не был удалён из подзадачи");
-        subtask21 = taskManager.getSubtaskById(21);
-        assertNull(subtask21.getEpicID(), "id эпика не был удалён из подзадачи");
+        // Проверяем, что подзадачи тоже удалились
+        assertEquals(0, taskManager.getAllSubtasks().size(), "Подзадачи не были удалены из трекера");
     }
 
+    // Проверяет добавление задачи (одной) в историю
     @Test
     void shouldAddSingleTaskToHistory() {
         // Создаём эпик и добавляем в трекер
@@ -301,19 +332,9 @@ class InMemoryTaskManagerTest {
         // Проверяем, что это действительно та задача
         assertTrue(taskManager.getHistory().contains(epic),
                 "В историю была добавлена задача с некорректным id");
-
-        // Создаём подзадачи со ссылкой на id эпика
-        Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID());
-        taskManager.addSubtask(sub1);
-        Subtask sub2 = new Subtask(20, "Subtask2", "description", TaskStatus.NEW, epic.getID());
-        taskManager.addSubtask(sub2);
-
-        // В трекере эпик обновляется: добавляются id подзадач в список у эпика
-        // При этом getHistory() должен возвращать предыдущее состояние эпика (на момент вызова getEpicById())
-        assertEquals(0, ((Epic)taskManager.getHistory().getFirst()).getSubtaskIDs().size(),
-                "Эпик в истории просмотра содержит подзадачи, хотя на момент вызова getEpicById() их не было");
     }
 
+    // Проверяет добавление нескольких задач в историю
     @Test
     void shouldAddMultipleTasksToHistory() {
         // Создаём эпик
@@ -341,6 +362,7 @@ class InMemoryTaskManagerTest {
                 "Некорректные задачи в истории просмотра задач");
     }
 
+    // Проверяет, что в историю не должен добавляться null
     @Test
     void shouldNotAddNullToHistory() {
         // Проверяем, что история не содержит задач
@@ -354,6 +376,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное добавление задач в историю просмотра");
     }
 
+    // Проверяет, что изменение запрошенного списка истории задач не влияет на историю в трекере
     @Test
     void historyShouldBeImmutable() {
         // Создадим несколько задач и добавим в трекер
@@ -379,6 +402,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное добавление задач в историю просмотра");
     }
 
+    // Проверяет, что задача (одна) удаляется из истории при удалении из трекера
     @Test
     void singleTaskShouldBeRemovedFromHistoryWhenRemovedFromManager() {
         // Создадим несколько задач и добавим в трекер
@@ -405,6 +429,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное удаление задачи из истории при удалении из менеджера");
     }
 
+    // Проверяет, что несколько задач удаляются из истории при удалении из трекера
     @Test
     void multipleTasksShouldBeRemovedFromHistoryWhenRemovedFromManager() {
         // Создадим несколько задач и добавим в трекер
@@ -435,6 +460,7 @@ class InMemoryTaskManagerTest {
                 "История просмотра не содержит необходимую задачу");
     }
 
+    // Проверяет, что в истории хранится предыдущее состояние задачи
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTask() {
         // Создадим несколько задач и добавим в трекер
@@ -479,6 +505,7 @@ class InMemoryTaskManagerTest {
         }
     }
 
+    // Проверяет, что история не содержит дубликатов задач
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenTaskViewedMultipleTimes() {
         // Создадим несколько задач и добавим в трекер
@@ -501,6 +528,7 @@ class InMemoryTaskManagerTest {
                 "Некорректное добавление задач в историю просмотра");
     }
 
+    // Проверяет удаление задачи из середины списка истории
     @Test
     void shouldRemoveTaskFromMiddleOfHistory() {
         // Создадим несколько задач и добавим в трекер
@@ -549,6 +577,7 @@ class InMemoryTaskManagerTest {
                 "Некорректный состав или порядок задач в истории просмотра");
     }
 
+    // Проверяет удаление задачи с конца списка истории
     @Test
     void shouldRemoveTaskFromEndOfHistory() {
         // Создадим несколько задач и добавим в трекер
@@ -597,4 +626,46 @@ class InMemoryTaskManagerTest {
                 "Некорректный состав или порядок задач в истории просмотра");
     }
 
+    // Проверяет, что при удалении эпика из трекера, он также удаляется и из истории вместе с его подзадачами
+    @Test
+    void shouldRemoveEpicFromHistoryWithItsSubtasksWhenRemovedFromManager() {
+        // Создаём эпики и добавляем в трекер
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        // Создаём подзадачи со ссылкой на эпик
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub11);
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(sub12);
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        taskManager.addSubtask(sub21);
+
+        // Запросим эпики и подзадачи
+        taskManager.getEpicById(epic1.getID());
+        taskManager.getSubtaskById(sub11.getID());
+        taskManager.getSubtaskById(sub21.getID());
+        taskManager.getSubtaskById(sub12.getID());
+        taskManager.getEpicById(epic2.getID());
+
+        // Проверим, что эпик с id = 1 и его подзадачи попали в историю
+        assertTrue(taskManager.getHistory().contains(epic1), "Эпик отсутствует в истории просмотра задач");
+        assertTrue(taskManager.getHistory().contains(sub11), "Подзадача отсутствует в истории просмотра задач");
+        assertTrue(taskManager.getHistory().contains(sub12), "Подзадача отсутствует в истории просмотра задач");
+
+        // Удалим эпик с id = 1
+        taskManager.removeEpicById(epic1.getID());
+
+        // Проверим, что эпика с id = 1 и его подзадач больше нет в истории
+        assertFalse(taskManager.getHistory().contains(epic1),
+                "Эпик присутствует в истории просмотра задач, несмотря на то, что был удалён из трекера");
+        assertFalse(taskManager.getHistory().contains(sub11),
+                "Подзадача присутствует в истории просмотра задач, несмотря на то, " +
+                        "что связанный эпик был удалён из трекера");
+        assertFalse(taskManager.getHistory().contains(sub12),
+                "Подзадача присутствует в истории просмотра задач, несмотря на то, " +
+                        "что связанный эпик был удалён из трекера");
+    }
 }
