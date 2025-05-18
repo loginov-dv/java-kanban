@@ -14,9 +14,20 @@ public class Subtask extends Task {
         }
     }
 
+    // Конструктор копирования
+    protected Subtask(Subtask otherSubtask) {
+        super(otherSubtask);
+        this.epicID = otherSubtask.epicID;
+    }
+
     // Получить id эпика
     public Integer getEpicID() {
         return epicID;
+    }
+
+    @Override
+    public Subtask copy() {
+        return new Subtask(this);
     }
 
     @Override

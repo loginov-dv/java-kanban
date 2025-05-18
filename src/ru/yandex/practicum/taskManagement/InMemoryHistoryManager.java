@@ -34,9 +34,9 @@ public class InMemoryHistoryManager implements HistoryManager {
             removeNode(nodeToRemove);
         }
         // Создаём копию задачи
-
+        Task taskCopy = task.copy();
         // Создаём новый узел в конце связного списка
-        Node<Task> node = linkLast(task);
+        Node<Task> node = linkLast(taskCopy);
         // Обновляем узел в хешмапе
         nodes.put(task.getID(), node);
     }

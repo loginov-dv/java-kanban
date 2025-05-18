@@ -21,6 +21,14 @@ public class Task {
         this.status = status;
     }
 
+    // Конструктор копирования
+    protected Task(Task otherTask) {
+        this.name = otherTask.getName();
+        this.description = otherTask.getDescription();
+        this.id = otherTask.getID();
+        this.status = otherTask.getStatus();
+    }
+
     // Получить имя задачи
     public String getName() {
         return name;
@@ -39,6 +47,11 @@ public class Task {
     // Получить текущий статус задачи
     public TaskStatus getStatus() {
         return status;
+    }
+
+    // Получить копию задачи
+    public Task copy() {
+        return new Task(this);
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми

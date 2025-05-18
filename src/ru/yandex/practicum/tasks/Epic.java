@@ -25,9 +25,20 @@ public class Epic extends Task {
         }
     }
 
+    // Конструктор копирования
+    protected Epic(Epic otherEpic) {
+        super(otherEpic);
+        this.subtaskIDs = new ArrayList<>(otherEpic.subtaskIDs);
+    }
+
     // Получить список id всех подзадач
     public List<Integer> getSubtaskIDs() {
         return subtaskIDs;
+    }
+
+    @Override
+    public Epic copy() {
+        return new Epic(this);
     }
 
     @Override
