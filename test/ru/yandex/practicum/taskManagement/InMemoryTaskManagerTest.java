@@ -436,7 +436,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTaskState() {
+    void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTask() {
         // Создадим несколько задач и добавим в трекер
         Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
         Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
@@ -449,21 +449,21 @@ class InMemoryTaskManagerTest {
 
         // Проверим корректность добавления задач в историю
         assertEquals(2, taskManager.getHistory().size(),
-                "Некорректное добавление задач в историю просмотра");
+                "Некорректное количество задач в истории просмотра");
         assertTrue(taskManager.getHistory().contains(task1),
-                "Некорректное добавление задач в историю просмотра");
+                "История не содержит задачу с id = 1");
         assertTrue(taskManager.getHistory().contains(task2),
-                "Некорректное добавление задач в историю просмотра");
+                "История не содержит задачу с id = 2");
 
         // Изменим поле description у задачи с id = 1 и обновим её в трекере
         Task task1_upd = new Task(task1.getID(), "Task1", "new description", TaskStatus.NEW);
         taskManager.updateBasicTask(task1_upd);
 
-        // Предварительно проверим, что в истории хранится предыдущее состояние задачи с id = 1
+        // Проверим, что в истории хранится предыдущее состояние задачи с id = 1 (задача не запрашивалась на просмотр)
         for (Task task : taskManager.getHistory()) {
             if (task.getID() == task1.getID()) {
                 assertEquals("description", task.getDescription(),
-                        "Некорректное добавление задач в историю просмотра");
+                        "Некорректное состояние задачи с id = 1 в истории просмотра");
             }
         }
 
@@ -474,7 +474,7 @@ class InMemoryTaskManagerTest {
         for (Task task : taskManager.getHistory()) {
             if (task.getID() == task1.getID()) {
                 assertEquals("new description", task.getDescription(),
-                        "Некорректное обновление задачи в истории просмотра");
+                        "Некорректное состояние задачи с id = 1 в истории просмотра");
             }
         }
     }
@@ -499,6 +499,102 @@ class InMemoryTaskManagerTest {
         // одна из задач была запрошена несколько раз
         assertEquals(2, taskManager.getHistory().size(),
                 "Некорректное добавление задач в историю просмотра");
+    }
+
+    @Test
+    void shouldRemoveTaskFromMiddleOfHistory() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE);
+        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW);
+        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+        taskManager.addBasicTask(task3);
+        taskManager.addBasicTask(task4);
+        taskManager.addBasicTask(task5);
+
+        // Запросим все задачи
+        taskManager.getBasicTaskById(task1.getID());
+        taskManager.getBasicTaskById(task2.getID());
+        taskManager.getBasicTaskById(task3.getID());
+        taskManager.getBasicTaskById(task4.getID());
+        taskManager.getBasicTaskById(task5.getID());
+
+        // Проверим состав списка
+        ArrayList<Integer> expectedList = new ArrayList<>(List.of(1, 2, 3, 4, 5));
+        ArrayList<Integer> actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректный состав или порядок задач в истории просмотра");
+
+        // Удалим задачу с id = 3 (в середине списка истории задач) из трекера
+        taskManager.removeBasicTaskById(task3.getID());
+
+        // Проверим, что задачи с id = 3 больше нет в истории
+        assertFalse(taskManager.getHistory().contains(task3),
+                "Задача с id = 3 была удалена из трекера, но по-прежнему присутствует в истории");
+
+        // Проверим состав списка
+        expectedList = new ArrayList<>(List.of(1, 2, 4, 5));
+        actualList.clear();
+        actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректный состав или порядок задач в истории просмотра");
+    }
+
+    @Test
+    void shouldRemoveTaskFromEndOfHistory() {
+        // Создадим несколько задач и добавим в трекер
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE);
+        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW);
+        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+        taskManager.addBasicTask(task3);
+        taskManager.addBasicTask(task4);
+        taskManager.addBasicTask(task5);
+
+        // Запросим все задачи
+        taskManager.getBasicTaskById(task1.getID());
+        taskManager.getBasicTaskById(task2.getID());
+        taskManager.getBasicTaskById(task3.getID());
+        taskManager.getBasicTaskById(task4.getID());
+        taskManager.getBasicTaskById(task5.getID());
+
+        // Проверим состав списка
+        ArrayList<Integer> expectedList = new ArrayList<>(List.of(1, 2, 3, 4, 5));
+        ArrayList<Integer> actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректный состав или порядок задач в истории просмотра");
+
+        // Удалим задачу с id = 5 (в конце списка истории задач) из трекера
+        taskManager.removeBasicTaskById(task5.getID());
+
+        // Проверим, что задачи с id = 5 больше нет в истории
+        assertFalse(taskManager.getHistory().contains(task5),
+                "Задача с id = 5 была удалена из трекера, но по-прежнему присутствует в истории");
+
+        // Проверим состав списка
+        expectedList = new ArrayList<>(List.of(1, 2, 3, 4));
+        actualList.clear();
+        actualList = new ArrayList<>();
+        for (Task task : taskManager.getHistory()) {
+            actualList.add(task.getID());
+        }
+        assertArrayEquals(expectedList.toArray(), actualList.toArray(),
+                "Некорректный состав или порядок задач в истории просмотра");
     }
 
 }
