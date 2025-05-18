@@ -60,17 +60,41 @@ public class InMemoryHistoryManager implements HistoryManager {
     // Узел связного списка
     private static class Node<T> {
         // Объект, который хранится в узле
-        public T data;
+        private T data;
         // Следующий узел
-        public Node<T> next;
+        private Node<T> next;
         // Предыдущий узел
-        public Node<T> prev;
+        private Node<T> prev;
 
         // Конструктор класса Node<T>
         public Node(Node<T> prev, T data, Node<T> next) {
-            this.data = data;
-            this.next = next;
-            this.prev = prev;
+            setData(data);
+            setNext(next);
+            setPrev(prev);
+        }
+
+        public T getData() {
+            return data;
+        }
+
+        public void setData(T value) {
+            data = value;
+        }
+
+        public Node<T> getNext() {
+            return next;
+        }
+
+        public void setNext(Node<T> value) {
+            next = value;
+        }
+
+        public Node<T> getPrev() {
+            return prev;
+        }
+
+        public void setPrev(Node<T> value) {
+            prev = value;
         }
     }
 
@@ -104,19 +128,23 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     // Удалить узел
     private void removeNode(Node<Task> node) {
-        Node<Task> prev = node.prev;
-        Node<Task> next = node.next;
+        Node<Task> prev = node.getPrev();
+        Node<Task> next = node.getNext();
         // Если удаляемый node является head
         if (prev == null) {
             head = next;
         } else {
-            prev.next = next;
+            prev.setNext(next);
+            node.setPrev(null);
         }
         // Если удаляемый node является tail
         if (next == null) {
             tail = prev;
         } else {
-            next.prev = prev;
+            next.setPrev(prev);
+            node.setNext(null);
         }
+
+        node.setData(null);
     }
 }
