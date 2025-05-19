@@ -6,7 +6,7 @@ import java.util.List;
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
     // id подзадач, входящих в эпик
-    private List<Integer> subtaskIDs;
+    private final List<Integer> subtaskIDs;
 
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status) {

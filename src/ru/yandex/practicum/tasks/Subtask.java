@@ -1,5 +1,7 @@
 package ru.yandex.practicum.tasks;
 
+import java.util.Objects;
+
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
     // id эпика, в рамках которого выполняется задача
@@ -9,7 +11,7 @@ public class Subtask extends Task {
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
         super(id, name, description, status);
         // Не добавляем, если id эпика равен id самой подзадачи
-        if (epicID != Integer.valueOf(id)) {
+        if (!Objects.equals(epicID, id)) {
             this.epicID = epicID;
         }
     }
