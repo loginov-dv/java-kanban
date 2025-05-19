@@ -25,6 +25,7 @@ public class Subtask extends Task {
         return epicID;
     }
 
+    // Возвращает копию текущего объекта Subtask
     @Override
     public Subtask copy() {
         return new Subtask(this);

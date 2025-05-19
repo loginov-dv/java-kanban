@@ -49,7 +49,7 @@ public class Task {
         return status;
     }
 
-    // Получить копию задачи
+    // Возвращает копию текущего объекта Task
     public Task copy() {
         return new Task(this);
     }

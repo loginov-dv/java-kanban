@@ -36,6 +36,7 @@ public class Epic extends Task {
         return subtaskIDs;
     }
 
+    // Возвращает копию текущего объекта Epic
     @Override
     public Epic copy() {
         return new Epic(this);
