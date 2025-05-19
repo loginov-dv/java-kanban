@@ -31,37 +31,48 @@ public class Main {
         printAllTasks(inMemoryTaskManager);
         System.out.println();
 
-        System.out.println("=> 2. Запросите созданные задачи несколько раз в разном порядке. " +
+        System.out.println("=> Запросите созданные задачи несколько раз в разном порядке. " +
                 "После каждого запроса выведите историю и убедитесь, что в ней нет повторов.:\n");
 
+        System.out.println("\t-> Запрос Задача 1");
         inMemoryTaskManager.getBasicTaskById(task1.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Задача 1");
         inMemoryTaskManager.getBasicTaskById(task1.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Подзадача 11");
         inMemoryTaskManager.getSubtaskById(subtask11.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Эпик 1");
         inMemoryTaskManager.getEpicById(epic1.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Подзадача 11");
         inMemoryTaskManager.getSubtaskById(subtask11.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Задача 1");
         inMemoryTaskManager.getBasicTaskById(task1.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Подзадача 12");
         inMemoryTaskManager.getSubtaskById(subtask12.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Подзадача 13");
         inMemoryTaskManager.getSubtaskById(subtask13.getID());
         printHistory(inMemoryTaskManager);
+        System.out.println("\t-> Запрос Подзадача 12");
         inMemoryTaskManager.getSubtaskById(subtask12.getID());
         printHistory(inMemoryTaskManager);
 
         System.out.println("=> Удалите задачу, которая есть в истории, и проверьте, " +
                 "что при печати она не будет выводиться:\n");
 
+        System.out.println("\t-> Удаление Задача 1");
         inMemoryTaskManager.removeBasicTaskById(task1.getID());
         printHistory(inMemoryTaskManager);
 
         System.out.println("=> Удалите эпик с тремя подзадачами и убедитесь, что из истории удалился как сам эпик, " +
                 "так и все его подзадачи:\n");
 
+        System.out.println("\t-> Удаление Эпик 1");
         inMemoryTaskManager.removeEpicById(epic1.getID());
         printHistory(inMemoryTaskManager);
     }
