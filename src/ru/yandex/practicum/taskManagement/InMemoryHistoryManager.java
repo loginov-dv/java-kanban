@@ -14,11 +14,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     // Последний элемент в связном списке задач
     private Node<Task> tail;
     // Мапа с id задач и соответствующими узлами
-    private final Map<Integer, Node<Task>> nodes = new HashMap<>();
+    private final Map<Integer, Node<Task>> nodes;
 
     // Конструктор класса InMemoryHistoryManager
     public InMemoryHistoryManager() {
-
+        nodes = new HashMap<>();
     }
 
     // Добавить задачу в список
@@ -28,16 +28,17 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null) {
             return;
         }
+
         // Удаляем старый узел (при наличии)
         if (nodes.containsKey(task.getID())) {
             Node<Task> nodeToRemove = nodes.get(task.getID());
             removeNode(nodeToRemove);
         }
-        // Создаём копию задачи
-        Task taskCopy = task.copy();
-        // Создаём новый узел в конце связного списка
-        Node<Task> node = linkLast(taskCopy);
-        // Обновляем узел в хешмапе
+
+        // Создаём новый узел в конце связного списка и кладём в него копию задачи
+        Node<Task> node = linkLast(task.copy());
+
+        // Добавляем (обновляем) узел в мапу
         nodes.put(task.getID(), node);
     }
 
@@ -53,10 +54,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (!nodes.containsKey(id)) {
             return;
         }
-        // Находим связанный узел
-        Node<Task> nodeToRemove = nodes.remove(id);
-        // Удаляем узел
-        removeNode(nodeToRemove);
+
+        // Находим связанный узел и удаляем его из мапы и из связного списка
+        removeNode(nodes.remove(id));
     }
 
     // Узел связного списка
@@ -105,6 +105,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node<Task> oldTail = tail;
         Node<Task> newTail = new Node<>(tail, task, null);
         tail = newTail;
+
         // Если список был пуст, то новый узел будет являться head
         if (oldTail == null) {
             head = newTail;
@@ -132,6 +133,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     private void removeNode(Node<Task> node) {
         Node<Task> prev = node.getPrev();
         Node<Task> next = node.getNext();
+
         // Если удаляемый node является head
         if (prev == null) {
             head = next;
@@ -139,6 +141,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             prev.setNext(next);
             node.setPrev(null);
         }
+
         // Если удаляемый node является tail
         if (next == null) {
             tail = prev;
