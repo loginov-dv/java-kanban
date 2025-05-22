@@ -21,6 +21,14 @@ public class Task {
         this.status = status;
     }
 
+    // Конструктор копирования
+    protected Task(Task otherTask) {
+        this.name = otherTask.getName();
+        this.description = otherTask.getDescription();
+        this.id = otherTask.getID();
+        this.status = otherTask.getStatus();
+    }
+
     // Получить имя задачи
     public String getName() {
         return name;
@@ -41,6 +49,11 @@ public class Task {
         return status;
     }
 
+    // Возвращает копию текущего объекта Task
+    public Task copy() {
+        return new Task(this);
+    }
+
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
     @Override
     public boolean equals(Object obj) {
@@ -57,7 +70,7 @@ public class Task {
 
     @Override
     public String toString() {
-        String result = "Task{id=" + id +", ";
+        String result = "Task{id=" + id + ", ";
 
         result += name == null ? "name=null, " : ("name=" + name + ", ");
         result += description == null ? "description=null, " : ("description.length=" + description.length() + ", ");
