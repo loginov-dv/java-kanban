@@ -19,11 +19,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static final String HEADER = "id,type,name,status,description,epic";
 
     // Конструктор класса FileBackedTaskManager
-    public FileBackedTaskManager(String autoSavePath) {
-        super();
-        this.autoSaveFile = new File(autoSavePath);
-    }
-
     public FileBackedTaskManager(File autoSaveFile) {
         super();
         this.autoSaveFile = autoSaveFile;
@@ -58,7 +53,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     // Загрузить в трекер задачи из файла
     private static void loadTasksFromFile(FileBackedTaskManager manager, File fromFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fromFile, StandardCharsets.UTF_8))) {
-            while(bufferedReader.ready()) {
+            while (bufferedReader.ready()) {
                 String line = bufferedReader.readLine();
 
                 if (line.isBlank() || line.startsWith("id")) {
@@ -69,15 +64,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 String type = args[1];
 
                 switch (type) {
-                    case "Task" :
+                    case "Task":
                         Task task = Task.fromString(line);
                         manager.addBasicTask(task);
                         break;
-                    case "Subtask" :
+                    case "Subtask":
                         Subtask subtask = Subtask.fromString(line);
                         manager.addSubtask(subtask);
                         break;
-                    case "Epic" :
+                    case "Epic":
                         Epic epic = Epic.fromString(line);
                         manager.addEpic(epic);
                         break;
