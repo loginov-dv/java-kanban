@@ -1,7 +1,268 @@
 package ru.yandex.practicum.taskManagement;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
+import ru.yandex.practicum.tasks.*;
 
+class FileBackedTaskManagerTest {
+    // Трекер задач
+    private static TaskManager taskManager;
+
+    // Вспомогательные файлы
+    private static File saveFile;
+    private static File sourceFile;
+    private static File emptyFile;
+    private static File onlyHeaderFile;
+
+    @BeforeEach
+    void beforeEach() {
+        try {
+            saveFile = File.createTempFile("testSave", ".csv");
+            saveFile.deleteOnExit();
+            taskManager = new FileBackedTaskManager(saveFile);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        // Создаём задачу (обычную)
+        Task task = new Task(1, "task", "description", TaskStatus.NEW);
+        // Создаём эпик
+        Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW);
+        // Создаём подзадачу
+        Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2);
+        try {
+            // Записываем задачи в тестовый временный файл
+            sourceFile = File.createTempFile("testSource", ".csv");
+            sourceFile.deleteOnExit();
+            try (Writer writer = new FileWriter(sourceFile, StandardCharsets.UTF_8)) {
+                String content = FileBackedTaskManager.HEADER + "\n" +
+                        task + "\n" +
+                        epic + "\n" +
+                        subtask + "\n";
+                writer.write(content);
+            }
+
+            // Пустой файл
+            emptyFile = File.createTempFile("testEmpty", ".csv");
+            emptyFile.deleteOnExit();
+
+            // Файл, содержащий только заголовок
+            onlyHeaderFile = File.createTempFile("testOnlyHeader", ".csv");
+            onlyHeaderFile.deleteOnExit();
+            try (Writer writer = new FileWriter(onlyHeaderFile, StandardCharsets.UTF_8)) {
+                writer.write(FileBackedTaskManager.HEADER + "\n");
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    @Test
+    void shouldAddTasks() {
+        // Создаём задачу (обычную)
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task);
+        // Проверяем добавление задачи (обычной)
+        assertEquals(1, taskManager.getAllBasicTasks().size(), "Задача не была добавлена в трекер");
+
+        // Создаём эпик
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic);
+        // Проверяем добавление эпика
+        assertEquals(1, taskManager.getAllEpics().size(), "Эпик не был добавлен в трекер");
+
+        // Создаём подзадачу
+        Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
+                TaskStatus.NEW, epic.getID());
+        taskManager.addSubtask(subtask);
+        // Проверяем добавление подзадачи
+        assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
+
+        // Ожидаемое содержимое файла
+        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+                task + "\n" +
+                epic + "\n" +
+                subtask + "\n";
+
+        // Фактическое содержимое файла
+        StringBuilder contentFact = new StringBuilder();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
+                contentFact.append(line).append("\n");
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+
+        // Проверяем, что задачи записаны корректно
+        assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
+    }
+
+    @Test
+    void shouldUpdateTasks() {
+        // Создаём задачу (обычную)
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task);
+
+        // Создаём эпик
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic);
+
+        // Создаём подзадачу
+        Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
+                TaskStatus.NEW, epic.getID());
+        taskManager.addSubtask(subtask);
+
+        // Изменяем задачу (обычную)
+        Task updatedTask = new Task(task.getID(), "updatedTask", "updatedDescription",
+                TaskStatus.IN_PROGRESS);
+        taskManager.updateBasicTask(updatedTask);
+
+        // Ожидаемое содержимое файла
+        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+                updatedTask + "\n" +
+                epic + "\n" +
+                subtask + "\n";
+
+        // Фактическое содержимое файла
+        StringBuilder contentFact = new StringBuilder();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
+                contentFact.append(line).append("\n");
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+
+        // Проверяем, что задачи записаны корректно
+        assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
+    }
+
+    @Test
+    void shouldRemoveTasks() {
+        // Создаём задачу (обычную)
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task);
+
+        // Создаём эпик
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        taskManager.addEpic(epic);
+
+        // Создаём подзадачу
+        Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
+                TaskStatus.NEW, epic.getID());
+        taskManager.addSubtask(subtask);
+
+        // Удаляем задачу (обычную)
+        taskManager.removeBasicTaskById(task.getID());
+
+        // Ожидаемое содержимое файла
+        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+                epic + "\n" +
+                subtask + "\n";
+
+        // Фактическое содержимое файла
+        StringBuilder contentFact = new StringBuilder();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
+                contentFact.append(line).append("\n");
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+
+        // Проверяем, что задачи записаны корректно
+        assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
+
+        // Удаляем эпик, вместе с которым должна удалиться и его подзадача
+        taskManager.removeEpicById(epic.getID());
+
+        // Ожидаемое содержимое файла (только заголовок)
+        contentExpected = FileBackedTaskManager.HEADER + "\n";
+
+        // Фактическое содержимое файла
+        contentFact = new StringBuilder();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
+                contentFact.append(line).append("\n");
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+
+        // Проверяем, что задачи записаны корректно
+        assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
+    }
+
+    @Test
+    void shouldRestoreStateFromFile() {
+        FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(sourceFile, saveFile);
+
+        // Проверяем добавление задачи (обычной)
+        assertEquals(1, taskManagerFromFile.getAllBasicTasks().size(),
+                "Задача не была добавлена в трекер");
+        // Проверяем добавление эпика
+        assertEquals(1, taskManagerFromFile.getAllEpics().size(),
+                "Эпик не был добавлен в трекер");
+        // Проверяем добавление подзадачи
+        assertEquals(1, taskManagerFromFile.getAllSubtasks().size(),
+                "Подзадача не была добавлена в трекер");
+
+        // Проверяем поля задачи (обычной)
+        Task task = taskManagerFromFile.getBasicTaskById(1);
+        assertNotNull(task, "Задача с id = 1 отсутствует в трекере");
+        assertEquals("task", task.getName(), "Некорректное наименование задачи с id = 1");
+        assertEquals("description", task.getDescription(), "Некорректное описание задачи с id = 1");
+        assertEquals(TaskStatus.NEW, task.getStatus(), "Некорректный статус задачи с id = 1");
+        // Для подзадачи проверим id эпика
+        Subtask subtask = taskManagerFromFile.getSubtaskById(3);
+        assertNotNull(subtask, "Поздадача с id = 3 отсутствует в трекере");
+        assertEquals(2, subtask.getEpicID(), "Некорректный id эпика у поздадачи с id = 3");
+        // Для эпика проверим id его подзадач
+        Epic epic = taskManagerFromFile.getEpicById(2);
+        assertNotNull(epic, "Эпик с id = 2 отсутствует в трекере");
+        assertEquals(1, epic.getSubtaskIDs().size(),
+                "Некорректное количество подзадач у эпика с id = 2");
+        assertEquals(3, epic.getSubtaskIDs().getFirst(),
+                "Некорректный номер подзадачи у эпика с id = 2");
+    }
+
+    @Test
+    void shouldHandleEmptyFileWhenRestoreStateFromFile() {
+        FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(emptyFile, saveFile);
+
+        // Проверяем, что задачи не были добавлены
+        assertEquals(0, taskManagerFromFile.getAllBasicTasks().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+        assertEquals(0, taskManagerFromFile.getAllEpics().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+        assertEquals(0, taskManagerFromFile.getAllSubtasks().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+    }
+
+    @Test
+    void shouldHandleFileWithOnlyHeaderWithoutTasksWhenRestoreStateFromFile() {
+        FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(onlyHeaderFile, saveFile);
+
+        // Проверяем, что задачи не были добавлены
+        assertEquals(0, taskManagerFromFile.getAllBasicTasks().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+        assertEquals(0, taskManagerFromFile.getAllEpics().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+        assertEquals(0, taskManagerFromFile.getAllSubtasks().size(),
+                "В трекер была добавлена задача, хотя файл был пуст");
+    }
 }
