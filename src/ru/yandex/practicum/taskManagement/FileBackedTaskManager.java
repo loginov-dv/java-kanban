@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
@@ -21,15 +23,33 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.autoSavePath = Paths.get(autoSavePath);
     }
 
-    // Конструктор класса FileBackedTaskManager
-    public FileBackedTaskManager(HistoryManager historyManager, String autoSavePath) {
-        super(historyManager);
-        this.autoSavePath = Paths.get(autoSavePath);
+    // Сохранение всех задач в файл
+    private void save() {
+        try (Writer writer = new FileWriter(autoSavePath.toFile(), StandardCharsets.UTF_8)) {
+            writer.write(HEADER + "\n");
+
+            List<Task> allTasks = new ArrayList<>();
+            allTasks.addAll(getAllBasicTasks());
+            allTasks.addAll(getAllEpics());
+            allTasks.addAll(getAllSubtasks());
+
+            for (Task task : allTasks) {
+                writer.write(task.toString() + "\n");
+            }
+        } catch (IOException exception) {
+            throw new ManagerSaveException("Ошибка при сохранении файла. " + exception.getMessage());
+        }
     }
 
-    public FileBackedTaskManager(String fromFile, String autoSavePath) {
-        this(autoSavePath);
+    // Создать трекер, загрузив задачи из файла
+    public static FileBackedTaskManager loadFromFile(String fromFile, String autoSavePath) {
+        FileBackedTaskManager manager = new FileBackedTaskManager(autoSavePath);
+        loadTasksFromFile(manager, fromFile);
 
+        return manager;
+    }
+
+    private static void loadTasksFromFile(FileBackedTaskManager manager, String fromFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fromFile, StandardCharsets.UTF_8))) {
             while(bufferedReader.ready()) {
                 String line = bufferedReader.readLine();
@@ -40,37 +60,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
                 String[] args = line.split(",");
 
+                if (args.length < 5) {
+
+                }
+
                 if (args[1].equals(Task.class.getName())) {
-                    addBasicTask(new Task(line));
+                    manager.addBasicTask(new Task(line));
                 } else if (args[1].equals(Epic.class.getName())) {
-                    addEpic(new Epic(line));
+                    manager.addEpic(new Epic(line));
                 } else if (args[1].equals(Subtask.class.getName())) {
-                    addSubtask(new Subtask(line));
+                    manager.addSubtask(new Subtask(line));
                 }
             }
         } catch (IOException exception) {
-            throw new ManagerSaveException(exception.getMessage());
-        }
-    }
-
-    // Сохранение всех задач в файл
-    private void save() {
-        try (Writer writer = new FileWriter(autoSavePath.toFile(), StandardCharsets.UTF_8)) {
-            writer.write(HEADER + "\n");
-
-            for (Task task : getAllBasicTasks()) {
-                writer.write(task.toString() + "\n");
-            }
-
-            for (Epic epic : getAllEpics()) {
-                writer.write(epic.toString() + "\n");
-            }
-
-            for (Subtask subtask : getAllSubtasks()) {
-                writer.write(subtask.toString() + "\n");
-            }
-        } catch (IOException exception) {
-            throw new ManagerSaveException(exception.getMessage());
+            throw new ManagerSaveException("Ошибка при чтении файла. " + exception.getMessage());
         }
     }
 
