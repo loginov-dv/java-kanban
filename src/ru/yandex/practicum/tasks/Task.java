@@ -75,7 +75,7 @@ public class Task {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || this.getClass() != obj.getClass()) return false;
-        Task task = (Task)obj;
+        Task task = (Task) obj;
         return id == task.id;
     }
 
