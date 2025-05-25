@@ -49,27 +49,34 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return manager;
     }
 
+    // Загрузить в трекер задачи из файла
     private static void loadTasksFromFile(FileBackedTaskManager manager, String fromFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fromFile, StandardCharsets.UTF_8))) {
             while(bufferedReader.ready()) {
                 String line = bufferedReader.readLine();
 
-                if (line.isBlank() || line.equals(HEADER)) {
+                if (line.isBlank() || line.startsWith("id")) {
                     continue;
                 }
 
                 String[] args = line.split(",");
+                String type = args[1];
 
-                if (args.length < 5) {
-
-                }
-
-                if (args[1].equals(Task.class.getName())) {
-                    manager.addBasicTask(new Task(line));
-                } else if (args[1].equals(Epic.class.getName())) {
-                    manager.addEpic(new Epic(line));
-                } else if (args[1].equals(Subtask.class.getName())) {
-                    manager.addSubtask(new Subtask(line));
+                switch (type) {
+                    case "Task" :
+                        Task task = Task.fromString(line);
+                        manager.addBasicTask(task);
+                        break;
+                    case "Subtask" :
+                        Subtask subtask = Subtask.fromString(line);
+                        manager.addSubtask(subtask);
+                        break;
+                    case "Epic" :
+                        Epic epic = Epic.fromString(line);
+                        manager.addEpic(epic);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Неизвестный тип задачи");
                 }
             }
         } catch (IOException exception) {
