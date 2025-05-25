@@ -2,6 +2,9 @@ package ru.yandex.practicum.taskManagement;
 
 import ru.yandex.practicum.tasks.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -24,7 +27,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     // Сохранение всех задач в файл
     private void save() {
+        try (Writer writer = new FileWriter(autoSavePath.toFile())) {
+            writer.write("id,type,name,status,description,epic\n");
 
+            for (Task task : getAllBasicTasks()) {
+                writer.write(task.toString() + "\n");
+            }
+
+            for (Subtask subtask : getAllSubtasks()) {
+                writer.write(subtask.toString() + "\n");
+            }
+
+            for (Epic epic : getAllEpics()) {
+                writer.write(epic.toString() + "\n");
+            }
+        } catch (IOException exception) {
+            throw new ManagerSaveException(exception.getMessage());
+        }
     }
 
     // Добавление новой задачи (обычной)
