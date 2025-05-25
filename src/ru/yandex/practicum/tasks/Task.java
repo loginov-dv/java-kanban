@@ -29,6 +29,18 @@ public class Task {
         this.status = otherTask.getStatus();
     }
 
+    // Конструктор создания из строки
+    public Task(String value) {
+        String[] args = value.split(",");
+        int id = Integer.parseInt(args[0]);
+        TaskStatus status = TaskStatus.valueOf(args[3]);
+
+        this.id = id;
+        this.name = args[2];
+        this.status = status;
+        this.description = args[4];
+    }
+
     // Получить имя задачи
     public String getName() {
         return name;

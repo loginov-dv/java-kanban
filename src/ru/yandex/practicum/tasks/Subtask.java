@@ -22,6 +22,15 @@ public class Subtask extends Task {
         this.epicID = otherSubtask.epicID;
     }
 
+    // Конструктор создания из строки
+    public Subtask(String value) {
+        super(value);
+
+        int index = value.lastIndexOf(',');
+        String epicIdString = value.substring(index + 1);
+        this.epicID = Integer.parseInt(epicIdString);
+    }
+
     // Получить id эпика
     public Integer getEpicID() {
         return epicID;

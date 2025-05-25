@@ -25,6 +25,12 @@ public class Epic extends Task {
         }
     }
 
+    // Конструктор создания из строки
+    public Epic(String value) {
+        super(value);
+        subtaskIDs = new ArrayList<>();
+    }
+
     // Конструктор копирования
     protected Epic(Epic otherEpic) {
         super(otherEpic);
