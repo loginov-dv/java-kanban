@@ -48,15 +48,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Создать трекер, загрузив задачи из файла
-    public static FileBackedTaskManager loadFromFile(String fromFile, String autoSavePath) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(autoSavePath);
+    public static FileBackedTaskManager loadFromFile(File fromFile, File autoSaveFile) {
+        FileBackedTaskManager manager = new FileBackedTaskManager(autoSaveFile);
         loadTasksFromFile(manager, fromFile);
 
         return manager;
     }
 
     // Загрузить в трекер задачи из файла
-    private static void loadTasksFromFile(FileBackedTaskManager manager, String fromFile) {
+    private static void loadTasksFromFile(FileBackedTaskManager manager, File fromFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fromFile, StandardCharsets.UTF_8))) {
             while(bufferedReader.ready()) {
                 String line = bufferedReader.readLine();
