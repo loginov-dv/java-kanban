@@ -1,6 +1,6 @@
 package ru.yandex.practicum.taskManagement;
 
-import ru.yandex.practicum.exceptions.ManagerSaveException;
+import ru.yandex.practicum.exceptions.*;
 import ru.yandex.practicum.tasks.*;
 
 import java.io.*;
@@ -81,7 +81,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (IOException exception) {
-            throw new ManagerSaveException("Ошибка при чтении файла. " + exception.getMessage());
+            throw new ManagerLoadException("Ошибка при чтении файла. " + exception.getMessage());
         }
     }
 
