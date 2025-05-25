@@ -5,28 +5,33 @@ import ru.yandex.practicum.tasks.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    // Путь к файлу автосохранения
-    private final Path autoSavePath;
+    // Файл автосохранения
+    private final File autoSaveFile;
 
     // Заголовок файла при чтении/сохранении
-    private static final String HEADER = "id,type,name,status,description,epic";
+    public static final String HEADER = "id,type,name,status,description,epic";
 
     // Конструктор класса FileBackedTaskManager
     public FileBackedTaskManager(String autoSavePath) {
         super();
-        this.autoSavePath = Paths.get(autoSavePath);
+        this.autoSaveFile = new File(autoSavePath);
+    }
+
+    public FileBackedTaskManager(File autoSaveFile) {
+        super();
+        this.autoSaveFile = autoSaveFile;
     }
 
     // Сохранение всех задач в файл
     private void save() {
-        try (Writer writer = new FileWriter(autoSavePath.toFile(), StandardCharsets.UTF_8)) {
+        try (Writer writer = new FileWriter(autoSaveFile, StandardCharsets.UTF_8)) {
             writer.write(HEADER + "\n");
 
             List<Task> allTasks = new ArrayList<>();
