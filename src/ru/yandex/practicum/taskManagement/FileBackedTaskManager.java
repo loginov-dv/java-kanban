@@ -2,21 +2,24 @@ package ru.yandex.practicum.taskManagement;
 
 import ru.yandex.practicum.tasks.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     // Путь к файлу автосохранения
-    private final String fileName;
+    private final Path autoSavePath;
 
     // Конструктор класса FileBackedTaskManager
-    public FileBackedTaskManager(String fileName) {
+    public FileBackedTaskManager(String autoSavePath) {
         super();
-        this.fileName = fileName;
+        this.autoSavePath = Paths.get(autoSavePath);
     }
 
     // Конструктор класса FileBackedTaskManager
-    public FileBackedTaskManager(HistoryManager historyManager, String fileName) {
+    public FileBackedTaskManager(HistoryManager historyManager, String autoSavePath) {
         super(historyManager);
-        this.fileName = fileName;
+        this.autoSavePath = Paths.get(autoSavePath);
     }
 
     // Сохранение всех задач в файл
