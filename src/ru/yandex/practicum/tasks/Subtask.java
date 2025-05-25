@@ -35,11 +35,6 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        String resultSuper = super.toString();
-        String fieldsOfSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
-        String result = "Subtask" + fieldsOfSuper;
-        result += epicID == null ? ", epic=null}" : (", epic.id=" + epicID + "}");
-
-        return result;
+        return super.toString() + getEpicID();
     }
 }

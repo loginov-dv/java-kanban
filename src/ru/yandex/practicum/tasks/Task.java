@@ -70,12 +70,7 @@ public class Task {
 
     @Override
     public String toString() {
-        String result = "Task{id=" + id + ", ";
-
-        result += name == null ? "name=null, " : ("name=" + name + ", ");
-        result += description == null ? "description=null, " : ("description.length=" + description.length() + ", ");
-        result += status == null ? "status=null}" : ("status=" + status.name() + "}");
-
-        return result;
+        return getID() + "," + this.getClass().getName() + "," + getName() + "," + getStatus().name() +
+                "," + getDescription() + ",";
     }
 }

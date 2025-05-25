@@ -41,14 +41,4 @@ public class Epic extends Task {
     public Epic copy() {
         return new Epic(this);
     }
-
-    @Override
-    public String toString() {
-        String resultSuper = super.toString();
-        String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
-        String result = "Epic" + contentSuper;
-        result += subtaskIDs.isEmpty() ? ", subtasks=empty}" : (", subtasks.size=" + subtaskIDs.size() + "}");
-
-        return result;
-    }
 }
