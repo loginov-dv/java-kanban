@@ -163,4 +163,47 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.removeAllEpics();
         save();
     }
+
+    // Пользовательский сценарий
+    public static void main(String[] args) throws IOException {
+        // Создаём трекер
+        File saveFile = File.createTempFile("test1", ".csv");
+        saveFile.deleteOnExit();
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(saveFile);
+
+        // Добавляем задачи
+        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW);
+        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW);
+        taskManager.addBasicTask(task1);
+        taskManager.addBasicTask(task2);
+
+        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW);
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание",
+                TaskStatus.NEW, epic1.getID());
+        Subtask subtask12 = new Subtask(taskManager.nextId(), "Подзадача 12", "Описание",
+                TaskStatus.NEW, epic1.getID());
+        Subtask subtask13 = new Subtask(taskManager.nextId(), "Подзадача 13", "Описание",
+                TaskStatus.NEW, epic1.getID());
+        taskManager.addSubtask(subtask11);
+        taskManager.addSubtask(subtask12);
+        taskManager.addSubtask(subtask13);
+
+        // Создаём новый трекер из файла другого трекера
+        File anotherSaveFile = File.createTempFile("test1", ".csv");
+        anotherSaveFile.deleteOnExit();
+        FileBackedTaskManager newTaskManager = FileBackedTaskManager.loadFromFile(saveFile, anotherSaveFile);
+
+        // Проверяем наличие всех задач
+        System.out.println(newTaskManager.getBasicTaskById(task1.getID()));
+        System.out.println(newTaskManager.getBasicTaskById(task2.getID()));
+        System.out.println(newTaskManager.getEpicById(epic1.getID()));
+        System.out.println(newTaskManager.getEpicById(epic2.getID()));
+        System.out.println(newTaskManager.getSubtaskById(subtask11.getID()));
+        System.out.println(newTaskManager.getSubtaskById(subtask12.getID()));
+        System.out.println(newTaskManager.getSubtaskById(subtask13.getID()));
+    }
 }
