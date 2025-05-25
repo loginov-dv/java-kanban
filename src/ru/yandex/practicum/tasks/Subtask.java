@@ -22,15 +22,6 @@ public class Subtask extends Task {
         this.epicID = otherSubtask.epicID;
     }
 
-    // Конструктор создания из строки
-    public Subtask(String value) {
-        super(value);
-
-        int index = value.lastIndexOf(',');
-        String epicIdString = value.substring(index + 1);
-        this.epicID = Integer.parseInt(epicIdString);
-    }
-
     // Получить id эпика
     public Integer getEpicID() {
         return epicID;
@@ -40,6 +31,23 @@ public class Subtask extends Task {
     @Override
     public Subtask copy() {
         return new Subtask(this);
+    }
+
+    // Создать объект класса Subtask из его строкового представления
+    public static Subtask fromString(String value) {
+        String[] args = value.split(",");
+
+        if (args.length < 6) {
+            throw new IllegalArgumentException("Некорректный формат строки");
+        }
+
+        int id = Integer.parseInt(args[0]);
+        String name = args[2];
+        TaskStatus status = TaskStatus.valueOf(args[3]);
+        String description = args[4];
+        int epicID = Integer.parseInt(args[5]);
+
+        return new Subtask(id, name, description, status, epicID);
     }
 
     @Override

@@ -25,12 +25,6 @@ public class Epic extends Task {
         }
     }
 
-    // Конструктор создания из строки
-    public Epic(String value) {
-        super(value);
-        subtaskIDs = new ArrayList<>();
-    }
-
     // Конструктор копирования
     protected Epic(Epic otherEpic) {
         super(otherEpic);
@@ -40,6 +34,22 @@ public class Epic extends Task {
     // Получить список id всех подзадач
     public List<Integer> getSubtaskIDs() {
         return subtaskIDs;
+    }
+
+    // Создать объект класса Epic из его строкового представления
+    public static Epic fromString(String value) {
+        String[] args = value.split(",");
+
+        if (args.length < 5) {
+            throw new IllegalArgumentException("Некорректный формат строки");
+        }
+
+        int id = Integer.parseInt(args[0]);
+        String name = args[2];
+        TaskStatus status = TaskStatus.valueOf(args[3]);
+        String description = args[4];
+
+        return new Epic(id, name, description, status);
     }
 
     // Возвращает копию текущего объекта Epic

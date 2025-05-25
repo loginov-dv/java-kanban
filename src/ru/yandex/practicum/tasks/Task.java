@@ -29,18 +29,6 @@ public class Task {
         this.status = otherTask.getStatus();
     }
 
-    // Конструктор создания из строки
-    public Task(String value) {
-        String[] args = value.split(",");
-        int id = Integer.parseInt(args[0]);
-        TaskStatus status = TaskStatus.valueOf(args[3]);
-
-        this.id = id;
-        this.name = args[2];
-        this.status = status;
-        this.description = args[4];
-    }
-
     // Получить имя задачи
     public String getName() {
         return name;
@@ -64,6 +52,22 @@ public class Task {
     // Возвращает копию текущего объекта Task
     public Task copy() {
         return new Task(this);
+    }
+
+    // Создать объект Task из его строкового представления
+    public static Task fromString(String value) {
+        String[] args = value.split(",");
+
+        if (args.length < 5) {
+            throw new IllegalArgumentException("Некорректный формат строки");
+        }
+
+        int id = Integer.parseInt(args[0]);
+        String name = args[2];
+        TaskStatus status = TaskStatus.valueOf(args[3]);
+        String description = args[4];
+
+        return new Task(id, name, description, status);
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
