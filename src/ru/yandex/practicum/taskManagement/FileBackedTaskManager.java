@@ -80,7 +80,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         throw new IllegalArgumentException("Неизвестный тип задачи");
                 }
             }
-        } catch (IOException exception) {
+        } catch (IOException | IllegalArgumentException exception) {
             throw new ManagerLoadException("Ошибка при чтении файла. " + exception.getMessage());
         }
     }
