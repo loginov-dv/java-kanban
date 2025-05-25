@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.exceptions;
 
 public class ManagerSaveException extends RuntimeException {
     // Конструктор класса ManagerSaveException
