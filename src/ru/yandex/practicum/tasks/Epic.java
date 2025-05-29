@@ -3,6 +3,7 @@ package ru.yandex.practicum.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
 import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Класс для описания эпика (большой задачи)
@@ -58,5 +59,11 @@ public class Epic extends Task {
     @Override
     public Epic copy() {
         return new Epic(this);
+    }
+
+    @Override
+    public String toString() {
+        return getID() + "," + TaskType.EPIC.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
     }
 }

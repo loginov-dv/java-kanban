@@ -90,9 +90,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return getID() + "," + this.getClass().getSimpleName() + "," + escapeSpecialCharacters(getName()) + ","
+        return getID() + "," + TaskType.TASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
     }
-
-
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.tasks;
 import java.util.List;
 import java.util.Objects;
 
+import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
 import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Класс для описания подзадачи в рамках эпика
@@ -55,6 +56,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return super.toString() + getEpicID();
+        return getID() + "," + TaskType.SUBTASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + "," + getEpicID();
     }
 }
