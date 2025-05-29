@@ -1,6 +1,10 @@
 package ru.yandex.practicum.tasks;
 
+import java.util.List;
 import java.util.Objects;
+
+import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
@@ -33,13 +37,26 @@ public class Subtask extends Task {
         return new Subtask(this);
     }
 
+    // Создать объект класса Subtask из его строкового представления
+    public static Subtask fromString(String value) {
+        List<String> args = parseLine(value);
+
+        if (args.size() != 6) {
+            throw new IllegalArgumentException("Некорректный формат строки");
+        }
+
+        int id = Integer.parseInt(args.get(0));
+        String name = args.get(2);
+        TaskStatus status = TaskStatus.valueOf(args.get(3));
+        String description = args.get(4);
+        int epicID = Integer.parseInt(args.get(5));
+
+        return new Subtask(id, name, description, status, epicID);
+    }
+
     @Override
     public String toString() {
-        String resultSuper = super.toString();
-        String fieldsOfSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
-        String result = "Subtask" + fieldsOfSuper;
-        result += epicID == null ? ", epic=null}" : (", epic.id=" + epicID + "}");
-
-        return result;
+        return getID() + "," + TaskType.SUBTASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + "," + getEpicID();
     }
 }
