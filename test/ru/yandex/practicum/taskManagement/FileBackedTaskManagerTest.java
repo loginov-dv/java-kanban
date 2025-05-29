@@ -20,6 +20,7 @@ class FileBackedTaskManagerTest {
     private static File emptyFile;
     private static File onlyHeaderFile;
 
+    // Инициализация трекера задач
     @BeforeEach
     void beforeEach() {
         try {
@@ -67,6 +68,7 @@ class FileBackedTaskManagerTest {
         }
     }
 
+    // Проверяет добавление задач в трекер и запись их в файл
     @Test
     void shouldAddTasks() {
         // Создаём задачу (обычную)
@@ -109,6 +111,7 @@ class FileBackedTaskManagerTest {
         assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
     }
 
+    // Проверяет обновление задач в трекере и в файле
     @Test
     void shouldUpdateTasks() {
         // Создаём задачу (обычную)
@@ -150,6 +153,7 @@ class FileBackedTaskManagerTest {
         assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
     }
 
+    // Проверяет удаление задач из трекера и из файла
     @Test
     void shouldRemoveTasks() {
         // Создаём задачу (обычную)
@@ -208,6 +212,7 @@ class FileBackedTaskManagerTest {
         assertEquals(contentExpected, contentFact.toString(), "Некорректная запись задач в файл");
     }
 
+    // Проверяет восстановление данных трекера из заранее подготовленного файла
     @Test
     void shouldRestoreStateFromFile() {
         FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(sourceFile, saveFile);
@@ -241,6 +246,7 @@ class FileBackedTaskManagerTest {
                 "Некорректный номер подзадачи у эпика с id = 2");
     }
 
+    // Проверяет загрузку и корректную обработку пустого файла в трекер
     @Test
     void shouldHandleEmptyFileWhenRestoreStateFromFile() {
         FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(emptyFile, saveFile);
@@ -254,6 +260,7 @@ class FileBackedTaskManagerTest {
                 "В трекер была добавлена задача, хотя файл был пуст");
     }
 
+    // Проверяет загрузку и корректную обработку файла, состоящего только из заголовка
     @Test
     void shouldHandleFileWithOnlyHeaderWithoutTasksWhenRestoreStateFromFile() {
         FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(onlyHeaderFile, saveFile);
@@ -267,6 +274,7 @@ class FileBackedTaskManagerTest {
                 "В трекер была добавлена задача, хотя файл был пуст");
     }
 
+    // Проверяет загрузку и корректную обработку файла, в строковых полях которого содержатся кавычки и/или запятые
     @Test
     void shouldHandleQuotationMarksAndCommasInFileWhenRestoreStateFromFile() {
         // Создаём задачу, одно из полей которой содержит внутренние кавычки
@@ -299,7 +307,7 @@ class FileBackedTaskManagerTest {
         // Проверяем равенство полей отдельных задач
         for (Task originTask : taskManager.getAllBasicTasks()) {
             Task anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
-            assertNotNull(anotherTask, "Не найдена задача с таким же id в трекере, созданном из файла");
+            assertNotNull(anotherTask, "Не найдена задача с таким id в трекере, созданном из файла");
             assertEquals(originTask.getName(), anotherTask.getName(), "Некорректное наименование задачи");
             assertEquals(originTask.getDescription(), anotherTask.getDescription(),
                     "Некорректное описание задачи");
