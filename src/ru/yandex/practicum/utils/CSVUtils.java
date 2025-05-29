@@ -6,7 +6,7 @@ import java.util.List;
 // Вспомогательный класс для работы со строками
 public final class CSVUtils {
 
-    // Метод для обработки строковых полей для вывода в toString()
+    // Метод для экранирования запятых и кавычек
     public static String escapeSpecialCharacters(String data) {
         if (data.contains(",") || data.contains("\"")) {
             // Экранируем кавычки внутри строки
@@ -20,7 +20,7 @@ public final class CSVUtils {
         return data;
     }
 
-    // Метод для парсинга строки
+    // Метод для парсинга csv
     // Учитывает запятые и кавычки в полях
     public static List<String> parseLine(String line) {
         List<String> fields = new ArrayList<>();
