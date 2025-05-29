@@ -56,9 +56,14 @@ public class Task {
 
     // Создать объект Task из его строкового представления
     public static Task fromString(String value) {
-        String[] args = value.split(",");
+        String[] args = value.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-        if (args.length < 5) {
+        // Удаляем кавычки в начале и конце строки
+        for (int i = 0; i < args.length; i++) {
+            args[i] = args[i].replaceAll("^\"|\"$", "");
+        }
+
+        if (args.length < 5 || args.length > 6) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
@@ -86,7 +91,18 @@ public class Task {
 
     @Override
     public String toString() {
-        return getID() + "," + this.getClass().getSimpleName() + "," + "\""+ getName() + "\"" + ","
-                + getStatus().name() + "," + "\"" + getDescription() + "\"" + ",";
+        return getID() + "," + this.getClass().getSimpleName() + "," + escapeSpecialCharacters(getName()) + ","
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
+    }
+
+    // Вспомогательный метод для обработки строковых полей для вывода в toString()
+    private String escapeSpecialCharacters(String data) {
+        if (data.contains(",") || data.contains("\"")) {
+            String escapedData = data.replace("\"", "\"\"");
+            escapedData = "\"" + escapedData + "\"";
+            return escapedData;
+        }
+
+        return data;
     }
 }
