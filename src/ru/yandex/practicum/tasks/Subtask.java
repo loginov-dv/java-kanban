@@ -1,6 +1,9 @@
 package ru.yandex.practicum.tasks;
 
+import java.util.List;
 import java.util.Objects;
+
+import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
@@ -35,17 +38,17 @@ public class Subtask extends Task {
 
     // Создать объект класса Subtask из его строкового представления
     public static Subtask fromString(String value) {
-        String[] args = value.split(",");
+        List<String> args = parseLine(value);
 
-        if (args.length < 6) {
+        if (args.size() != 6) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
-        int id = Integer.parseInt(args[0]);
-        String name = args[2];
-        TaskStatus status = TaskStatus.valueOf(args[3]);
-        String description = args[4];
-        int epicID = Integer.parseInt(args[5]);
+        int id = Integer.parseInt(args.get(0));
+        String name = args.get(2);
+        TaskStatus status = TaskStatus.valueOf(args.get(3));
+        String description = args.get(4);
+        int epicID = Integer.parseInt(args.get(5));
 
         return new Subtask(id, name, description, status, epicID);
     }

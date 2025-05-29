@@ -1,8 +1,10 @@
 package ru.yandex.practicum.tasks;
 
+import java.util.List;
 import java.util.Objects;
 
 import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Базовый класс для описания задачи
 public class Task {
@@ -58,21 +60,16 @@ public class Task {
 
     // Создать объект Task из его строкового представления
     public static Task fromString(String value) {
-        String[] args = value.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+        List<String> args = parseLine(value);
 
-        // Удаляем кавычки в начале и конце строки
-        for (int i = 0; i < args.length; i++) {
-            args[i] = args[i].replaceAll("^\"|\"$", "");
-        }
-
-        if (args.length < 5 || args.length > 6) {
+        if (args.size() < 5 || args.size() > 6) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
-        int id = Integer.parseInt(args[0]);
-        String name = args[2];
-        TaskStatus status = TaskStatus.valueOf(args[3]);
-        String description = args[4];
+        int id = Integer.parseInt(args.get(0));
+        String name = args.get(2);
+        TaskStatus status = TaskStatus.valueOf(args.get(3));
+        String description = args.get(4);
 
         return new Task(id, name, description, status);
     }

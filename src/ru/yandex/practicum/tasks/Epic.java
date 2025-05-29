@@ -3,6 +3,8 @@ package ru.yandex.practicum.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.yandex.practicum.utils.CSVUtils.parseLine;
+
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
     // id подзадач, входящих в эпик
@@ -38,16 +40,16 @@ public class Epic extends Task {
 
     // Создать объект класса Epic из его строкового представления
     public static Epic fromString(String value) {
-        String[] args = value.split(",");
+        List<String> args = parseLine(value);
 
-        if (args.length < 5) {
+        if (args.size() < 5 || args.size() > 6) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
-        int id = Integer.parseInt(args[0]);
-        String name = args[2];
-        TaskStatus status = TaskStatus.valueOf(args[3]);
-        String description = args[4];
+        int id = Integer.parseInt(args.get(0));
+        String name = args.get(2);
+        TaskStatus status = TaskStatus.valueOf(args.get(3));
+        String description = args.get(4);
 
         return new Epic(id, name, description, status);
     }
