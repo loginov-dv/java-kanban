@@ -58,7 +58,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 }
 
-                String[] args = line.split(",");
+                // Всё, что находится за вторым элементом массива, на данном этапе не имеет значения
+                String[] args = line.split(",", 3);
+                // Тип задачи
                 String type = args[1];
 
                 switch (type) {
@@ -78,7 +80,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         throw new IllegalArgumentException("Неизвестный тип задачи");
                 }
             }
-        } catch (IOException | IllegalArgumentException exception) {
+        } catch (IOException | IllegalArgumentException | IndexOutOfBoundsException exception) {
             throw new ManagerLoadException("Ошибка при чтении файла. " + exception.getMessage());
         }
     }
