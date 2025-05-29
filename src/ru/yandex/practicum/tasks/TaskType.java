@@ -6,7 +6,7 @@ public enum TaskType {
     EPIC("Epic"),
     SUBTASK("Subtask");
 
-    // Наименование типа задачи для вывода
+    // Наименование типа задачи
     private final String displayName;
 
     // Конструктор TaskType
@@ -14,7 +14,7 @@ public enum TaskType {
         this.displayName = displayName;
     }
 
-    // Получить тип задачи
+    // Получить наименование типа задачи
     public String getDisplayName() {
         return displayName;
     }
