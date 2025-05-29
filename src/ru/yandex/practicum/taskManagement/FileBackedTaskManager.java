@@ -61,18 +61,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 // Всё, что находится за вторым элементом массива, на данном этапе не имеет значения
                 String[] args = line.split(",", 3);
                 // Тип задачи
-                String type = args[1];
+                TaskType type = TaskType.TASK.valueOf(args[1].toUpperCase());
 
                 switch (type) {
-                    case "Task":
+                    case TASK:
                         Task task = Task.fromString(line);
                         manager.addBasicTask(task);
                         break;
-                    case "Subtask":
+                    case SUBTASK:
                         Subtask subtask = Subtask.fromString(line);
                         manager.addSubtask(subtask);
                         break;
-                    case "Epic":
+                    case EPIC:
                         Epic epic = Epic.fromString(line);
                         manager.addEpic(epic);
                         break;
