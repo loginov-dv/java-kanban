@@ -31,6 +31,7 @@ class FileBackedTaskManagerTest {
         }
     }
 
+    // Создание вспомогательных файлов
     @BeforeAll
     static void beforeAll() {
         // Создаём задачу (обычную)
@@ -264,5 +265,45 @@ class FileBackedTaskManagerTest {
                 "В трекер была добавлена задача, хотя файл был пуст");
         assertEquals(0, taskManagerFromFile.getAllSubtasks().size(),
                 "В трекер была добавлена задача, хотя файл был пуст");
+    }
+
+    @Test
+    void shouldHandleQuotationMarksAndCommasInFileWhenRestoreStateFromFile() {
+        // Создаём задачу, одно из полей которой содержит внутренние кавычки
+        Task task1 = new Task(taskManager.nextId(), "task1", "\"description\"", TaskStatus.NEW);
+        taskManager.addBasicTask(task1);
+        // Создаём задачу, одно из полей которой содержит запятую
+        Task task2 = new Task(taskManager.nextId(), "task, the second", "description", TaskStatus.NEW);
+        taskManager.addBasicTask(task2);
+        // Создаём задачу, одно из полей которой содержит и кавычки и запятую
+        Task task3 = new Task(taskManager.nextId(), "task3", "\"very\", descriptive", TaskStatus.NEW);
+        taskManager.addBasicTask(task3);
+        // Создаём задачу, одно из полей которой кавычки, а другое - запятую
+        Task task4 = new Task(taskManager.nextId(), "task,4", "\"descr", TaskStatus.NEW);
+        taskManager.addBasicTask(task4);
+
+        // Создаём новый трекер из файла другого трекера
+        File anotherSaveFile = null;
+        try {
+            anotherSaveFile = File.createTempFile("test1", ".csv");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        anotherSaveFile.deleteOnExit();
+        FileBackedTaskManager newTaskManager = FileBackedTaskManager.loadFromFile(saveFile, anotherSaveFile);
+
+        // Проверяем, что все задачи загружены
+        assertEquals(4, newTaskManager.getAllBasicTasks().size(),
+                "Некорректное количество задач в трекере, созданном из файла");
+
+        // Проверяем равенство полей отдельных задач
+        for (Task originTask : taskManager.getAllBasicTasks()) {
+            Task anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
+            assertNotNull(anotherTask, "Не найдена задача с таким же id в трекере, созданном из файла");
+            assertEquals(originTask.getName(), anotherTask.getName(), "Некорректное наименование задачи");
+            assertEquals(originTask.getDescription(), anotherTask.getDescription(),
+                    "Некорректное описание задачи");
+            assertEquals(originTask.getStatus(), anotherTask.getStatus(), "Некорректный статус задачи");
+        }
     }
 }
