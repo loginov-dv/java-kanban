@@ -2,6 +2,8 @@ package ru.yandex.practicum.tasks;
 
 import java.util.Objects;
 
+import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+
 // Базовый класс для описания задачи
 public class Task {
     // Название
@@ -95,14 +97,5 @@ public class Task {
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
     }
 
-    // Вспомогательный метод для обработки строковых полей для вывода в toString()
-    private String escapeSpecialCharacters(String data) {
-        if (data.contains(",") || data.contains("\"")) {
-            String escapedData = data.replace("\"", "\"\"");
-            escapedData = "\"" + escapedData + "\"";
-            return escapedData;
-        }
 
-        return data;
-    }
 }
