@@ -3,6 +3,9 @@ package ru.yandex.practicum.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CSVUtils.parseLine;
+
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
     // id подзадач, входящих в эпик
@@ -36,6 +39,22 @@ public class Epic extends Task {
         return subtaskIDs;
     }
 
+    // Создать объект класса Epic из его строкового представления
+    public static Epic fromString(String value) {
+        List<String> args = parseLine(value);
+
+        if (args.size() < 5 || args.size() > 6) {
+            throw new IllegalArgumentException("Некорректный формат строки");
+        }
+
+        int id = Integer.parseInt(args.get(0));
+        String name = args.get(2);
+        TaskStatus status = TaskStatus.valueOf(args.get(3));
+        String description = args.get(4);
+
+        return new Epic(id, name, description, status);
+    }
+
     // Возвращает копию текущего объекта Epic
     @Override
     public Epic copy() {
@@ -44,11 +63,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        String resultSuper = super.toString();
-        String contentSuper = resultSuper.substring(resultSuper.indexOf("{"), resultSuper.indexOf("}"));
-        String result = "Epic" + contentSuper;
-        result += subtaskIDs.isEmpty() ? ", subtasks=empty}" : (", subtasks.size=" + subtaskIDs.size() + "}");
-
-        return result;
+        return getID() + "," + TaskType.EPIC.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
     }
 }
