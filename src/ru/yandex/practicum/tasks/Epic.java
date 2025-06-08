@@ -60,10 +60,10 @@ public class Epic extends Task {
     }
 
     // Создать объект класса Epic из его строкового представления
-    public static Epic fromString(String value) {
+    public static Epic fromString(String value) throws IllegalArgumentException {
         List<String> args = parseLine(value);
 
-        if (args.size() < 5 || args.size() > 6) {
+        if (args.size() != 7) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
@@ -71,8 +71,10 @@ public class Epic extends Task {
         String name = args.get(2);
         TaskStatus status = TaskStatus.valueOf(args.get(3));
         String description = args.get(4);
+        LocalDateTime startTime = LocalDateTime.parse(args.get(5));
+        Duration duration = Duration.ofMinutes(Long.parseLong(args.get(6)));
 
-        return new Epic(id, name, description, status);
+        return new Epic(id, name, description, status, startTime, duration);
     }
 
     // Возвращает копию текущего объекта Epic
@@ -84,6 +86,7 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return getID() + "," + TaskType.EPIC.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
-                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
+                + getStartTime().toString() + "," + getDuration().toMinutes() + ",";
     }
 }
