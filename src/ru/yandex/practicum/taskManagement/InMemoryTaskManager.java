@@ -14,7 +14,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Subtask> subtasks;
 
     // Последний присвоенный id
-    private int globalID;
+    protected int globalID;
 
     // Менеджер истории просмотра задач
     private final HistoryManager historyManager;
