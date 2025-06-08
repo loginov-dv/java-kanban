@@ -22,12 +22,16 @@ public class InMemoryTaskManager implements TaskManager {
     // Менеджер истории просмотра задач
     private final HistoryManager historyManager;
 
+    // Приоритезированное по дате начала множество задач и подзадач
+    private final Set<Task> prioritizedSet;
+
     // Конструктор класса InMemoryTaskManager
     public InMemoryTaskManager(HistoryManager historyManager) {
         basicTasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
+        prioritizedSet = new TreeSet<>(Comparator.comparing(Task::getStartTime));
         this.historyManager = historyManager;
     }
 
@@ -66,6 +70,9 @@ public class InMemoryTaskManager implements TaskManager {
         // Удаляем задачи из истории
         basicTasks.keySet().forEach(taskId -> historyManager.removeTask(taskId));
 
+        // Удаляем из множества
+        prioritizedSet.removeAll(basicTasks.values());
+
         // Удаляем задачи из трекера
         basicTasks.clear();
     }
@@ -78,6 +85,9 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
+
+        // Удаляем из множества
+        prioritizedSet.removeAll(subtasks.values());
 
         // Удаляем все подзадачи из трекера
         subtasks.clear();
@@ -94,6 +104,9 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
+
+        // Удаляем все подзадачи из множества
+        prioritizedSet.removeAll(subtasks.values());
 
         // Удаляем все подзадачи из трекера
         subtasks.clear();
@@ -130,6 +143,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addBasicTask(Task task) {
         basicTasks.put(task.getID(), task);
+        // Добавление в множество
+        prioritizedSet.add(task);
     }
 
     // Добавление новой подзадачи
@@ -142,6 +157,8 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Добавляем новую подзадачу в хешмапу
         subtasks.put(subtask.getID(), subtask);
+        // Добавление в множество
+        prioritizedSet.add(subtask);
 
         // Обновляем эпик, к которому относится подзадача
         if (subtask.getEpicID() == null) {
@@ -176,6 +193,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateBasicTask(Task updatedTask) {
         basicTasks.put(updatedTask.getID(), updatedTask);
+        // Обновление в множестве
+        prioritizedSet.remove(updatedTask);
+        prioritizedSet.add(updatedTask);
     }
 
     // Обновление подзадачи
@@ -183,6 +203,9 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubtask(Subtask updatedSubtask) {
         // Обновляем подзадачу в хешмапе
         subtasks.put(updatedSubtask.getID(), updatedSubtask);
+        // Обновление в множестве
+        prioritizedSet.remove(updatedSubtask);
+        prioritizedSet.add(updatedSubtask);
 
         // Обновляем эпик, к которому относится подзадача
         if (updatedSubtask.getEpicID() == null) {
@@ -244,6 +267,9 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление задачи (обычной) по id
     @Override
     public void removeBasicTaskById(int id) {
+        // Удаляем из множества
+        prioritizedSet.remove(basicTasks.get(id));
+
         // Удаляем из трекера
         basicTasks.remove(id);
 
@@ -273,6 +299,9 @@ public class InMemoryTaskManager implements TaskManager {
         // Пересоздаём эпик
         updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
 
+        // Удаляем из множества
+        prioritizedSet.remove(subtasks.get(id));
+
         // Удаляем подзадачу из трекера
         subtasks.remove(id);
 
@@ -287,6 +316,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Удаляем подзадачи эпика
         getAllEpicSubtasks(epic).forEach(subtask -> {
+            prioritizedSet.remove(subtask);
             subtasks.remove(subtask.getID());
             historyManager.removeTask(subtask.getID());
         });
@@ -342,5 +372,10 @@ public class InMemoryTaskManager implements TaskManager {
                 .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
                 .max(Comparator.naturalOrder())
                 .orElse(null);
+    }
+
+    // Возвращает список задач и подзадач в порядке приоритета (от более ранней даты начала к более поздней)
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedSet);
     }
 }
