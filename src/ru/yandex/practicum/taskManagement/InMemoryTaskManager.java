@@ -2,6 +2,8 @@ package ru.yandex.practicum.taskManagement;
 
 import ru.yandex.practicum.tasks.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -317,5 +319,28 @@ public class InMemoryTaskManager implements TaskManager {
     // Добавить задачу в историю просмотра
     private void addToHistory(Task task) {
         historyManager.addTask(task);
+    }
+
+    // Расчёт продолжительности эпика, которая равна сумме продолжительностей его подзадач
+    private Duration calculateEpicDuration(List<Integer> subtaskIDs) {
+        return subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getDuration())
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
+    // Расчёт времени начала эпика, которое равно дате старта самой ранней подзадачи
+    private LocalDateTime calculateEpicStartTime(List<Integer> subtasksIDs) {
+        return subtasksIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
+                .min(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    // Расчёт времени конца эпика, которое равно дате окончания самой поздней подзадачи
+    private LocalDateTime calculateEpicEndTime(List<Integer> subtasksIDs) {
+        return subtasksIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
+                .max(Comparator.naturalOrder())
+                .orElse(null);
     }
 }
