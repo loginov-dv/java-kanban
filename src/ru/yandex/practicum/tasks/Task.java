@@ -88,7 +88,7 @@ public class Task {
     public static Task fromString(String value) throws IllegalArgumentException {
         List<String> args = parseLine(value);
 
-        if (args.size() != 7) {
+        if (args.size() != 8) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
 
