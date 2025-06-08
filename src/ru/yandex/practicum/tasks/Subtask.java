@@ -72,6 +72,7 @@ public class Subtask extends Task {
     public String toString() {
         return getID() + "," + TaskType.SUBTASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
-                + getStartTime().toString() + "," + getDuration().toMinutes() + "," + getEpicID();
+                + (getStartTime() != null ? getStartTime().toString() : "") + ","
+                + (getDuration() != null ? getDuration().toMinutes() : "") + "," + getEpicID();
     }
 }

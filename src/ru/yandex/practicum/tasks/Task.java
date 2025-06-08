@@ -125,6 +125,7 @@ public class Task {
     public String toString() {
         return getID() + "," + TaskType.TASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
-                + getStartTime().toString() + "," + getDuration().toMinutes() + ",";
+                + (getStartTime() != null ? getStartTime().toString() : "") + ","
+                + (getDuration() != null ? getDuration().toMinutes() : "") + ",";
     }
 }
