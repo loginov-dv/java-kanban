@@ -2,6 +2,8 @@ package ru.yandex.practicum.taskManagement;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,11 +38,17 @@ class FileBackedTaskManagerTest {
     @BeforeAll
     static void beforeAll() {
         // Создаём задачу (обычную)
-        Task task = new Task(1, "task", "description", TaskStatus.NEW);
+        Task task = new Task(1, "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 20, 13, 0),
+                Duration.ofMinutes(60));
         // Создаём эпик
-        Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 20, 13, 0),
+                Duration.ofMinutes(60));
         // Создаём подзадачу
-        Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2);
+        Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2,
+                LocalDateTime.of(2022, 5, 20, 13, 0),
+                Duration.ofMinutes(60));
         try {
             // Записываем задачи в тестовый временный файл
             sourceFile = File.createTempFile("testSource", ".csv");
