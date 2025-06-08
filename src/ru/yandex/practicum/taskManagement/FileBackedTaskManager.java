@@ -14,7 +14,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File autoSaveFile;
 
     // Заголовок файла при чтении/сохранении
-    public static final String HEADER = "id,type,name,status,description,epic";
+    public static final String HEADER = "id,type,name,status,description,startTime,duration,epic";
 
     // Конструктор класса FileBackedTaskManager
     public FileBackedTaskManager(File autoSaveFile) {
