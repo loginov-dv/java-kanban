@@ -314,4 +314,21 @@ class FileBackedTaskManagerTest {
             assertEquals(originTask.getStatus(), anotherTask.getStatus(), "Некорректный статус задачи");
         }
     }
+
+    // Проверяем, что поле globalId обновляется соответствующим образом при чтении задач из файла, и что при создании
+    // новых задач через методы add... не происходит коллизий id задач
+    @Test
+    void shouldHaveNoIdCollisionsWhenRestoreStateFromFile() {
+        // Восстанавливаем состояние трекера из файла
+        FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(sourceFile, saveFile);
+
+        // Создаём новую задачу с id, который формирует метод трекера, и добавляем задачу в трекер
+        Task newTask = new Task(taskManagerFromFile.nextId(), "task name", "task descr", TaskStatus.NEW);
+        taskManagerFromFile.addBasicTask(newTask);
+
+        // Ожидаем, что теперь у нас две задачи в трекере (одна из файла и одна добавленная вручную)
+        // При необновлении поля globalId получили бы одну (новая задача перезаписала бы старую, т.к. их id равны)
+        assertEquals(2, taskManagerFromFile.getAllBasicTasks().size(),
+                "Некорректное добавление задач в трекер");
+    }
 }
