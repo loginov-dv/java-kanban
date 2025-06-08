@@ -62,6 +62,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 String[] args = line.split(",", 3);
                 // Тип задачи
                 TaskType type = TaskType.TASK.valueOf(args[1].toUpperCase());
+                // Изменяем globalId в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
+                int maxId = Integer.parseInt(args[0]);
+                if (maxId >= manager.globalID) {
+                    manager.globalID = maxId;
+                }
 
                 switch (type) {
                     case TASK:
