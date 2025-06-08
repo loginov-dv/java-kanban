@@ -3,6 +3,7 @@ package ru.yandex.practicum.taskManagement;
 import ru.yandex.practicum.tasks.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Класс для описания трекера задач
 public class InMemoryTaskManager implements TaskManager {
@@ -61,9 +62,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllBasicTasks() {
         // Удаляем задачи из истории
-        for (Integer taskId : basicTasks.keySet()) {
-            historyManager.removeTask(taskId);
-        }
+        basicTasks.keySet().forEach(taskId -> historyManager.removeTask(taskId));
 
         // Удаляем задачи из трекера
         basicTasks.clear();
@@ -73,14 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllSubtasks() {
         // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW
-        for (Epic epic : epics.values()) {
-            updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW));
-        }
+        epics.values().forEach(epic -> updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
 
         // Удаляем все подзадачи из истории
-        for (Integer subtaskId : subtasks.keySet()) {
-            historyManager.removeTask(subtaskId);
-        }
+        subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
 
         // Удаляем все подзадачи из трекера
         subtasks.clear();
@@ -90,17 +85,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllEpics() {
         // Удаляем все эпики из истории
-        for (Integer epicId : epics.keySet()) {
-            historyManager.removeTask(epicId);
-        }
+        epics.keySet().forEach(epicId -> historyManager.removeTask(epicId));
 
         // Удаляем все эпики из трекера
         epics.clear();
 
         // Удаляем все подзадачи из истории
-        for (Integer subtaskId : subtasks.keySet()) {
-            historyManager.removeTask(subtaskId);
-        }
+        subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
 
         // Удаляем все подзадачи из трекера
         subtasks.clear();
@@ -217,10 +208,9 @@ public class InMemoryTaskManager implements TaskManager {
     // Расчёт статуса эпика на основе статусов его подзадач
     private TaskStatus calculateEpicStatus(List<Integer> subtaskIDs) {
         // Подзадачи, относящиеся к эпику
-        List<Subtask> epicSubtasks = new ArrayList<>();
-        for (Integer subtaskID : subtaskIDs) {
-            epicSubtasks.add(subtasks.get(subtaskID));
-        }
+        List<Subtask> epicSubtasks = subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId))
+                .collect(Collectors.toList());
 
         if (epicSubtasks.isEmpty()) {
             return TaskStatus.NEW;
@@ -294,10 +284,10 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
 
         // Удаляем подзадачи эпика
-        for (Subtask subtask : getAllEpicSubtasks(epic)) {
+        getAllEpicSubtasks(epic).forEach(subtask -> {
             subtasks.remove(subtask.getID());
             historyManager.removeTask(subtask.getID());
-        }
+        });
 
         // Удаляем эпик из трекера
         epics.remove(id);
@@ -312,12 +302,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (!epics.containsKey(epic.getID())) {
             return Collections.emptyList();
         } else {
-            List<Subtask> epicSubtasks = new ArrayList<>();
-            for (Integer subtaskID : epic.getSubtaskIDs()) {
-                epicSubtasks.add(subtasks.get(subtaskID));
-            }
-
-            return epicSubtasks;
+            return epic.getSubtaskIDs().stream()
+                    .map(subtaskId -> subtasks.get(subtaskId))
+                    .collect(Collectors.toList());
         }
     }
 
