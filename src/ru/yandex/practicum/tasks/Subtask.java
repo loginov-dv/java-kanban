@@ -1,5 +1,7 @@
 package ru.yandex.practicum.tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +22,17 @@ public class Subtask extends Task {
         }
     }
 
-    // Конструктор копирования
+    // Конструктор класса Subtask
+    public Subtask(int id, String name, String description, TaskStatus status, Integer epicID,
+                   LocalDateTime startTime, Duration duration) {
+        super(id, name, description, status, startTime, duration);
+        // Не добавляем, если id эпика равен id самой подзадачи
+        if (!Objects.equals(epicID, id)) {
+            this.epicID = epicID;
+        }
+    }
+
+    // Конструктор копирования класса Subtask
     protected Subtask(Subtask otherSubtask) {
         super(otherSubtask);
         this.epicID = otherSubtask.epicID;

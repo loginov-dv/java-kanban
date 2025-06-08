@@ -1,5 +1,7 @@
 package ru.yandex.practicum.tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,6 +18,10 @@ public class Task {
     private final int id;
     // Статус
     private final TaskStatus status;
+    // Продолжительность выполнения задачи
+    private Duration duration;
+    // Дата и время начала выполнения задачи
+    private LocalDateTime startTime;
 
     // Конструктор класса Task
     public Task(int id, String name, String description, TaskStatus status) {
@@ -25,12 +31,22 @@ public class Task {
         this.status = status;
     }
 
-    // Конструктор копирования
+    // Конструктор класса Task
+    public Task(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
+                Duration duration) {
+        this(id, name, description, status);
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    // Конструктор копирования класса Task
     protected Task(Task otherTask) {
         this.name = otherTask.getName();
         this.description = otherTask.getDescription();
         this.id = otherTask.getID();
         this.status = otherTask.getStatus();
+        this.startTime = otherTask.getStartTime();
+        this.duration = otherTask.getDuration();
     }
 
     // Получить имя задачи
@@ -53,6 +69,16 @@ public class Task {
         return status;
     }
 
+    // Получить продолжительность задачи
+    public Duration getDuration() {
+        return duration;
+    }
+
+    // Получить дату и время начала задачи
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
     // Возвращает копию текущего объекта Task
     public Task copy() {
         return new Task(this);
@@ -72,6 +98,11 @@ public class Task {
         String description = args.get(4);
 
         return new Task(id, name, description, status);
+    }
+
+    // Получить дату и время завершения задачи
+    public LocalDateTime getEndTime() {
+        return startTime.plus(duration);
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми

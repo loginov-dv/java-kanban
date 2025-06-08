@@ -1,5 +1,7 @@
 package ru.yandex.practicum.tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,9 @@ public class Epic extends Task {
     // id подзадач, входящих в эпик
     private final List<Integer> subtaskIDs;
 
+    // Дата и время завершения задачи
+    private LocalDateTime endTime;
+
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status) {
         super(id, name, description, status);
@@ -21,14 +26,29 @@ public class Epic extends Task {
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
         this(id, name, description, status);
         // Не добавляем, если id подзадачи равен null или равен id самого эпика
-        for (Integer subtaskID : subtaskIDs) {
-            if (subtaskID != null && !subtaskID.equals(id)) {
-                this.subtaskIDs.add(subtaskID);
-            }
-        }
+        subtaskIDs.stream()
+                .filter(subtaskID -> subtaskID != null && !subtaskID.equals(id))
+                .forEach(this.subtaskIDs::add);
     }
 
-    // Конструктор копирования
+    // Конструктор класса Epic
+    public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
+                Duration duration) {
+        super(id, name, description, status, startTime, duration);
+        subtaskIDs = new ArrayList<>();
+    }
+
+    // Конструктор класса Epic
+    public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs,
+                LocalDateTime startTime, Duration duration) {
+        this(id, name, description, status, startTime, duration);
+        // Не добавляем, если id подзадачи равен null или равен id самого эпика
+        subtaskIDs.stream()
+                .filter(subtaskID -> subtaskID != null && !subtaskID.equals(id))
+                .forEach(this.subtaskIDs::add);
+    }
+
+    // Конструктор копирования класса Epic
     protected Epic(Epic otherEpic) {
         super(otherEpic);
         this.subtaskIDs = new ArrayList<>(otherEpic.subtaskIDs);
