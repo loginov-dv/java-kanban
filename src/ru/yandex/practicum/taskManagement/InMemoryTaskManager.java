@@ -1,5 +1,6 @@
 package ru.yandex.practicum.taskManagement;
 
+import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.tasks.*;
 
 import java.time.Duration;
@@ -78,9 +79,11 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление всех подзадач
     @Override
     public void removeAllSubtasks() {
-        // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW
+        // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW,
+        // startTime будет null, duration задаём 0
         epics.values().forEach(epic ->
-                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
+                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW,
+                        null, Duration.ZERO)));
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
         // Удаляем все подзадачи из множества
@@ -133,7 +136,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Добавление новой задачи (обычной)
     @Override
-    public void addBasicTask(Task task) {
+    public void addBasicTask(Task task) throws TaskOverlapException {
         // Ничего не делаем, если уже есть задача с таким идентификатором
         if (basicTasks.containsKey(task.getID())) {
             return;
@@ -144,8 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
             // Если параметр задан, то добавляем задачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(task::hasIntersectionWith)) {
-                // TODO: исключение?
-                return;
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
             basicTasks.put(task.getID(), task);
@@ -169,7 +171,7 @@ public class InMemoryTaskManager implements TaskManager {
             // Если параметр задан, то добавляем подзадачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(subtask::hasIntersectionWith)) {
-                return;
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
             subtasks.put(subtask.getID(), subtask);
@@ -228,8 +230,7 @@ public class InMemoryTaskManager implements TaskManager {
             // Если параметр задан, то обновляем задачу только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasIntersectionWith)) {
-                // TODO: исключение?
-                return;
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
             basicTasks.put(updatedTask.getID(), updatedTask);
@@ -258,8 +259,7 @@ public class InMemoryTaskManager implements TaskManager {
             // Если параметр задан, то обновляем подзадачу только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasIntersectionWith)) {
-                // TODO: исключение?
-                return;
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
             subtasks.put(updatedSubtask.getID(), updatedSubtask);
