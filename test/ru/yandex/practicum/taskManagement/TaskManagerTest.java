@@ -1,5 +1,7 @@
 package ru.yandex.practicum.taskManagement;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddTask() {
         // Создаём задачу (обычную)
-        Task task = new Task(1, "task", "description", TaskStatus.NEW);
+        Task task = new Task(1, "task", "description", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Проверяем добавление задачи (обычной)
@@ -35,7 +38,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddEpic() {
         // Создаём эпик
-        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Проверяем добавление эпика
@@ -46,7 +50,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddSubtask() {
         // Создаём подзадачу
-        Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10);
+        Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Проверяем добавление подзадачи
@@ -57,7 +62,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldFindTask() {
         // Создаём задачу и добавляем в трекер
-        Task task = new Task(1, "task", "description", TaskStatus.NEW);
+        Task task = new Task(1, "task", "description", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Проверяем получение задачи (обычной) по id
@@ -69,7 +75,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldFindEpic() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Проверяем получение эпика по id
@@ -81,7 +88,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldFindSubtask() {
         // Создаём подзадачу и добавляем в трекер
-        Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10);
+        Subtask subtask = new Subtask(1, "subtask", "description", TaskStatus.NEW, 10,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Проверяем получение подзадачи по id
@@ -111,25 +119,35 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateTask() {
         // Создаём задачу и добавляем в трекер
-        Task task = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Обновляем задачу путём передачи нового объекта (с изменённым состоянием)
-        Task updatedTask = new Task(task.getID(), "Task1_upd", "description_upd", TaskStatus.IN_PROGRESS);
+        Task updatedTask = new Task(task.getID(), "Task1_upd", "description_upd", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 2, 10, 12, 0), Duration.ofMinutes(100));
         taskManager.updateBasicTask(updatedTask);
 
         // Проверяем изменение полей задачи
         task = taskManager.getBasicTaskById(task.getID());
-        assertEquals(updatedTask.getName(), task.getName(), "Не было обновлено имя задачи");
-        assertEquals(updatedTask.getDescription(), task.getDescription(), "Не было обновлено описание задачи");
-        assertEquals(updatedTask.getStatus(), task.getStatus(), "Не был обновлен статус задачи");
+        assertEquals(updatedTask.getName(), task.getName(),
+                "Не было обновлено имя задачи");
+        assertEquals(updatedTask.getDescription(), task.getDescription(),
+                "Не было обновлено описание задачи");
+        assertEquals(updatedTask.getStatus(), task.getStatus(),
+                "Не был обновлен статус задачи");
+        assertEquals(updatedTask.getStartTime(), task.getStartTime(),
+                "Не была обновлена дата и время начала задачи");
+        assertEquals(updatedTask.getDuration(), task.getDuration(),
+                "Не была обновлена продолжительность задачи");
     }
 
     // Проверяет удаление задачи из трекера
     @Test
     void shouldRemoveTask() {
         // Создаём задачу и добавляем в трекер
-        Task task = new Task(1, "Task1", "description", TaskStatus.NEW);
+        Task task = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Проверяем, что задача добавлена
@@ -145,12 +163,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicWhenAddedSubtask() {
         // Создаём эпик и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
 
         // Создаём подзадачу, которая ссылается на этот эпик
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.IN_PROGRESS, epic1.getID());
+                TaskStatus.IN_PROGRESS, epic1.getID(),
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
@@ -165,12 +185,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicWhenRemovedSubtask() {
         // Создаём эпик и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
 
         // Создаём подзадачу, которая ссылается на этот эпик
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.IN_PROGRESS, epic1.getID());
+                TaskStatus.IN_PROGRESS, epic1.getID(),
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
@@ -196,13 +218,16 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicStatusWhenUpdatedSubtask() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачи со ссылкой на эпик
-        Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID());
+        Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub1);
-        Subtask sub2 = new Subtask(20, "Subtask2", "description", TaskStatus.NEW, epic.getID());
+        Subtask sub2 = new Subtask(20, "Subtask2", "description", TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub2);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
@@ -216,7 +241,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         // Обновляем статус одной из подзадач (NEW -> DONE)
         taskManager.updateSubtask(new Subtask(sub1.getID(), sub1.getName(), sub1.getDescription(),
-                TaskStatus.DONE, epic.getID()));
+                TaskStatus.DONE, epic.getID(),
+                sub1.getStartTime(), sub1.getDuration()));
 
         // Статус эпика должен измениться на IN_PROGRESS
         epic = taskManager.getEpicById(epic.getID());
@@ -224,7 +250,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         // Обновляем статус второй подзадачи (NEW -> DONE)
         taskManager.updateSubtask(new Subtask(sub2.getID(), sub2.getName(), sub2.getDescription(),
-                TaskStatus.DONE, epic.getID()));
+                TaskStatus.DONE, epic.getID(),
+                sub2.getStartTime(), sub2.getDuration()));
 
         // Статус эпика должен измениться на DONE
         epic = taskManager.getEpicById(epic.getID());
@@ -235,17 +262,22 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveSubtasksWhenRemovedEpic() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
         // Создаём подзадачи со ссылкой на эпик
-        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub11);
-        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub12);
-        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID(),
+                LocalDateTime.of(2025, 1, 20, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub21);
 
         // Удаляем эпик с id = 1
@@ -263,16 +295,20 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicsWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
+        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
         // Создаём подзадачи и добавляем в трекер
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.IN_PROGRESS, epic1.getID());
+                TaskStatus.IN_PROGRESS, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         Subtask subtask21 = new Subtask(21, "Подзадача 21", "Описание",
-                TaskStatus.DONE, epic2.getID());
+                TaskStatus.DONE, epic2.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
         taskManager.addSubtask(subtask21);
 
@@ -304,17 +340,22 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveSubtasksWhenRemovedAllEpics() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
         // Создаём подзадачи со ссылкой на эпик
-        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub11);
-        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub12);
-        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID(),
+                LocalDateTime.of(2025, 1, 10, 20, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub21);
 
         // Удаляем все эпики
@@ -328,7 +369,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddSingleTaskToHistory() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Проверяем, что история пуста
@@ -350,12 +392,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddMultipleTasksToHistory() {
         // Создаём эпик
-        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(100, "subtask", "description",
-                TaskStatus.NEW, 10);
+                TaskStatus.NEW, 10,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Проверим, что размер списка истории соответствует количеству вызовов методов получения задач
@@ -392,8 +436,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void historyShouldBeImmutable() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
@@ -418,8 +464,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void singleTaskShouldBeRemovedFromHistoryWhenRemovedFromManager() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
@@ -445,12 +493,15 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void multipleTasksShouldBeRemovedFromHistoryWhenRemovedFromManager() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
         // Создадим эпик и добавим в трекер
-        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Получим задачи и эпик по id
@@ -476,8 +527,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTask() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
@@ -494,7 +547,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 "История не содержит задачу с id = 2");
 
         // Изменим поле description у задачи с id = 1 и обновим её в трекере
-        Task task1_upd = new Task(task1.getID(), "Task1", "new description", TaskStatus.NEW);
+        Task task1_upd = new Task(task1.getID(), "Task1", "new description", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.updateBasicTask(task1_upd);
 
         // Проверим, что в истории хранится предыдущее состояние задачи с id = 1 (задача не запрашивалась на просмотр)
@@ -521,8 +575,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenTaskViewedMultipleTimes() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
@@ -544,11 +600,16 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveTaskFromMiddleOfHistory() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
-        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE);
-        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW);
-        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
+        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE,
+                LocalDateTime.of(2025, 1, 3, 10, 0), Duration.ofMinutes(60));
+        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 4, 10, 0), Duration.ofMinutes(60));
+        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 5, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
         taskManager.addBasicTask(task3);
@@ -593,11 +654,16 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveTaskFromEndOfHistory() {
         // Создадим несколько задач и добавим в трекер
-        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW);
-        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS);
-        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE);
-        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW);
-        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
+        Task task3 = new Task(3, "Task3", "description", TaskStatus.DONE,
+                LocalDateTime.of(2025, 1, 3, 10, 0), Duration.ofMinutes(60));
+        Task task4 = new Task(4, "Task4", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 4, 10, 0), Duration.ofMinutes(60));
+        Task task5 = new Task(5, "Task5", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 1, 5, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
         taskManager.addBasicTask(task3);
@@ -642,17 +708,22 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveEpicFromHistoryWithItsSubtasksWhenRemovedFromManager() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
         // Создаём подзадачи со ссылкой на эпик
-        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub11);
-        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID());
+        Subtask sub12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub12);
-        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID());
+        Subtask sub21 = new Subtask(21, "Subtask21", "description", TaskStatus.NEW, epic2.getID(),
+                LocalDateTime.of(2025, 1, 20, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(sub21);
 
         // Запросим эпики и подзадачи
