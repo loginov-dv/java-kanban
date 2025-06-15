@@ -197,9 +197,16 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epicSubtasks);
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epicSubtasks);
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epicSubtasks);
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epicSubtasks);
 
         // Пересоздаём эпик
-        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks,
+                newStartTime, newDuration, newEndTime));
     }
 
     // Добавление нового эпика
@@ -276,11 +283,17 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epic.getSubtaskIDs());
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epic.getSubtaskIDs());
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epic.getSubtaskIDs());
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epic.getSubtaskIDs());
 
-        // Пересоздаём эпик, если новый рассчитанный статус отличается от текущего (в иных случаях не требуется)
+        // Пересоздаём эпик
         if (epic.getStatus() != newEpicStatus) {
             updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus,
-                    epic.getSubtaskIDs()));
+                    epic.getSubtaskIDs(), newStartTime, newDuration, newEndTime));
         }
     }
 
@@ -358,9 +371,16 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epicSubtasks);
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epic.getSubtaskIDs());
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epic.getSubtaskIDs());
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epic.getSubtaskIDs());
 
         // Пересоздаём эпик
-        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks,
+                newStartTime, newDuration, newEndTime));
 
         // Удаляем подзадачу из множества
         prioritySet.remove(subtasks.get(id));

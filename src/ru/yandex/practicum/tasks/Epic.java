@@ -48,10 +48,23 @@ public class Epic extends Task {
                 .forEach(this.subtaskIDs::add);
     }
 
+    public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
+                Duration duration, LocalDateTime endTime) {
+        this(id, name, description, status, startTime, duration);
+        this.endTime = endTime;
+    }
+
+    public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs,
+                LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
+        this(id, name, description, status, subtaskIDs, startTime, duration);
+        this.endTime = endTime;
+    }
+
     // Конструктор копирования класса Epic
     protected Epic(Epic otherEpic) {
         super(otherEpic);
         this.subtaskIDs = new ArrayList<>(otherEpic.subtaskIDs);
+        this.endTime = otherEpic.endTime;
     }
 
     // Получить список id всех подзадач
@@ -89,5 +102,10 @@ public class Epic extends Task {
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
                 + (getStartTime() != null ? getStartTime().toString() : "") + ","
                 + (getDuration() != null ? getDuration().toMinutes() : "") + ",";
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 }
