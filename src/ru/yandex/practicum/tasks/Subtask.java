@@ -14,15 +14,6 @@ public class Subtask extends Task {
     private Integer epicID;
 
     // Конструктор класса Subtask
-    public Subtask(int id, String name, String description, TaskStatus status, Integer epicID) {
-        super(id, name, description, status);
-        // Не добавляем, если id эпика равен id самой подзадачи
-        if (!Objects.equals(epicID, id)) {
-            this.epicID = epicID;
-        }
-    }
-
-    // Конструктор класса Subtask
     public Subtask(int id, String name, String description, TaskStatus status, Integer epicID,
                    LocalDateTime startTime, Duration duration) {
         super(id, name, description, status, startTime, duration);

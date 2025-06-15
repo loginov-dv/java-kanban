@@ -17,21 +17,6 @@ public class Epic extends Task {
     private LocalDateTime endTime;
 
     // Конструктор класса Epic
-    public Epic(int id, String name, String description, TaskStatus status) {
-        super(id, name, description, status);
-        subtaskIDs = new ArrayList<>();
-    }
-
-    // Конструктор класса Epic
-    public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs) {
-        this(id, name, description, status);
-        // Не добавляем, если id подзадачи равен null или равен id самого эпика
-        subtaskIDs.stream()
-                .filter(subtaskID -> subtaskID != null && !subtaskID.equals(id))
-                .forEach(this.subtaskIDs::add);
-    }
-
-    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
                 Duration duration) {
         super(id, name, description, status, startTime, duration);
@@ -48,12 +33,14 @@ public class Epic extends Task {
                 .forEach(this.subtaskIDs::add);
     }
 
+    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
                 Duration duration, LocalDateTime endTime) {
         this(id, name, description, status, startTime, duration);
         this.endTime = endTime;
     }
 
+    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs,
                 LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
         this(id, name, description, status, subtaskIDs, startTime, duration);
