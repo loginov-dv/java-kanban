@@ -146,7 +146,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getStartTime() != null) {
             // Если параметр задан, то добавляем задачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(task::hasIntersectionWith)) {
+            if (getPrioritizedTasks().stream().anyMatch(task::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
@@ -170,7 +170,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask.getStartTime() != null) {
             // Если параметр задан, то добавляем подзадачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(subtask::hasIntersectionWith)) {
+            if (getPrioritizedTasks().stream().anyMatch(subtask::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
@@ -229,7 +229,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (updatedTask.getStartTime() != null) {
             // Если параметр задан, то обновляем задачу только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasIntersectionWith)) {
+            if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
@@ -258,7 +258,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (updatedSubtask.getStartTime() != null) {
             // Если параметр задан, то обновляем подзадачу только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasIntersectionWith)) {
+            if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 

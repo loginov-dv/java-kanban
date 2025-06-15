@@ -104,15 +104,15 @@ public class Task {
     }
 
     // Проверяет пересечение двух задач по времени выполнения
-    public final boolean hasIntersectionWith(Task otherTask) {
+    public final boolean hasOverlapWith(Task otherTask) {
         // Если у одной из задач не указана дата и время начала, то не можем определить пересечение
         if (getStartTime() == null || otherTask.getStartTime() == null) {
             return false;
         }
 
         // Определение пересечения по методу наложения отрезков
-        return otherTask.getStartTime().isBefore(getEndTime())
-                || getEndTime().isAfter(otherTask.getStartTime());
+        return (otherTask.getStartTime().isBefore(getEndTime()) && otherTask.getStartTime().isAfter(getStartTime()))
+                || (otherTask.getEndTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()));
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
