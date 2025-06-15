@@ -219,7 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateBasicTask(Task updatedTask) {
         // Ничего не делаем, если нет задачи с таким идентификатором
-        if (!subtasks.containsKey(updatedTask.getID())) {
+        if (!basicTasks.containsKey(updatedTask.getID())) {
             return;
         }
 
@@ -436,6 +436,7 @@ public class InMemoryTaskManager implements TaskManager {
     private Duration calculateEpicDuration(List<Integer> subtaskIDs) {
         return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getDuration())
+                .filter(Objects::nonNull)
                 .reduce(Duration.ZERO, Duration::plus);
     }
 
@@ -443,6 +444,7 @@ public class InMemoryTaskManager implements TaskManager {
     private LocalDateTime calculateEpicStartTime(List<Integer> subtasksIDs) {
         return subtasksIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
+                .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
     }
@@ -450,7 +452,8 @@ public class InMemoryTaskManager implements TaskManager {
     // Расчёт времени конца эпика, которое равно дате окончания самой поздней подзадачи
     private LocalDateTime calculateEpicEndTime(List<Integer> subtasksIDs) {
         return subtasksIDs.stream()
-                .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
+                .map(subtaskId -> subtasks.get(subtaskId).getEndTime())
+                .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
     }
