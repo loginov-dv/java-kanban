@@ -13,9 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import ru.yandex.practicum.tasks.*;
 
 class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    // Трекер задач
-    private static TaskManager taskManager;
-
     // Вспомогательные файлы
     private static File saveFile;
     private static File sourceFile;
@@ -43,11 +40,10 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
                 Duration.ofMinutes(60));
         // Создаём эпик
         Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW,
-                LocalDateTime.of(2022, 5, 20, 13, 0),
-                Duration.ofMinutes(60));
+                null, Duration.ZERO);
         // Создаём подзадачу
         Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2,
-                LocalDateTime.of(2022, 5, 20, 13, 0),
+                LocalDateTime.of(2022, 2, 20, 13, 0),
                 Duration.ofMinutes(60));
         try {
             // Записываем задачи в тестовый временный файл
@@ -80,23 +76,29 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     @Test
     void shouldAddTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
         // Проверяем добавление задачи (обычной)
         assertEquals(1, taskManager.getAllBasicTasks().size(), "Задача не была добавлена в трекер");
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
         // Проверяем добавление эпика
         assertEquals(1, taskManager.getAllEpics().size(), "Эпик не был добавлен в трекер");
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
         // Проверяем добавление подзадачи
         assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
+
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = FileBackedTaskManager.HEADER + "\n" +
@@ -123,22 +125,29 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     @Test
     void shouldUpdateTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Изменяем задачу (обычную)
         Task updatedTask = new Task(task.getID(), "updatedTask", "updatedDescription",
-                TaskStatus.IN_PROGRESS);
+                TaskStatus.IN_PROGRESS,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.updateBasicTask(updatedTask);
+
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = FileBackedTaskManager.HEADER + "\n" +
@@ -165,20 +174,26 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     @Test
     void shouldRemoveTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Удаляем задачу (обычную)
         taskManager.removeBasicTaskById(task.getID());
+
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = FileBackedTaskManager.HEADER + "\n" +
@@ -339,7 +354,8 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(sourceFile, saveFile);
 
         // Создаём новую задачу с id, который формирует метод трекера, и добавляем задачу в трекер
-        Task newTask = new Task(taskManagerFromFile.nextId(), "task name", "task descr", TaskStatus.NEW);
+        Task newTask = new Task(taskManagerFromFile.nextId(), "task name", "task descr", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManagerFromFile.addBasicTask(newTask);
 
         // Ожидаем, что теперь у нас две задачи в трекере (одна из файла и одна добавленная вручную)
