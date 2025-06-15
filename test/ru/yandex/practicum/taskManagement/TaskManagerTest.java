@@ -159,31 +159,44 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(0, taskManager.getAllBasicTasks().size(), "Задача не была удалена");
     }
 
-    // Проверяет обновление эпика при добавлении подзадачи
+    // Проверяет обновление статуса эпика при добавлении нескольких подзадач со статусом NEW
     @Test
-    void shouldUpdateEpicWhenAddedSubtask() {
-        // Создаём эпик и добавляем в трекер
+    void shouldUpdateEpicStatusWhenAddedNewSubtask() {
+        // Создадим эпик и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
                 null, Duration.ZERO);
         taskManager.addEpic(epic1);
 
-        // Создаём подзадачу, которая ссылается на этот эпик
+        // Создадим подзадачу со статусом NEW
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
-                TaskStatus.IN_PROGRESS, epic1.getID(),
-                LocalDateTime.now(), Duration.ofMinutes(60));
+                TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
 
-        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        // Получим эпик из трекера, ожидая, что он должен обновиться
         Epic updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(1, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
-        assertEquals(TaskStatus.IN_PROGRESS, updatedEpic.getStatus(),
+        assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
+                "Некорректное обновление статуса эпика");
+
+        // Создадим ещё одну подзадачу со статусом NEW
+        Subtask subtask12 = new Subtask(12, "Подзадача 12", "Описание",
+                TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
+        taskManager.addSubtask(subtask12);
+
+        // Получим эпик из трекера, ожидая, что он должен обновиться
+        updatedEpic = taskManager.getEpicById(epic1.getID());
+        assertEquals(2, updatedEpic.getSubtaskIDs().size(),
+                "id подзадачи не был добавлен в список подзадач эпика");
+        assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
                 "Некорректное обновление статуса эпика");
     }
 
-    // Проверяет обновление эпика при удалении подзадачи
+    // Проверяет обновление статуса эпика при удалении подзадачи
     @Test
-    void shouldUpdateEpicWhenRemovedSubtask() {
+    void shouldUpdateEpicStatusWhenRemovedSubtask() {
         // Создаём эпик и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
                 null, Duration.ZERO);
@@ -214,9 +227,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 "Некорректное обновление статуса эпика");
     }
 
-    // Проверяет обновление статуса эпика при обновлении статуса подзадачи
+    // Проверяет обновление статуса эпика при обновлении статусов его подзадач
     @Test
-    void shouldUpdateEpicStatusWhenUpdatedSubtask() {
+    void shouldUpdateEpicStatusWhenUpdatedSubtasks() {
         // Создаём эпик и добавляем в трекер
         Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW,
                 null, Duration.ZERO);
@@ -239,16 +252,34 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         sub2 = taskManager.getSubtaskById(sub2.getID());
         assertEquals(epic.getID(), sub2.getEpicID(), "id эпика не был добавлен в подзадачу");
 
-        // Обновляем статус одной из подзадач (NEW -> DONE)
+        // Обновляем статус одной из подзадач (NEW -> IN_PROGRESS)
         taskManager.updateSubtask(new Subtask(sub1.getID(), sub1.getName(), sub1.getDescription(),
-                TaskStatus.DONE, epic.getID(),
+                TaskStatus.IN_PROGRESS, epic.getID(),
                 sub1.getStartTime(), sub1.getDuration()));
 
         // Статус эпика должен измениться на IN_PROGRESS
         epic = taskManager.getEpicById(epic.getID());
         assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
 
-        // Обновляем статус второй подзадачи (NEW -> DONE)
+        // Обновляем статус одной из подзадач (IN_PROGRESS -> DONE)
+        taskManager.updateSubtask(new Subtask(sub1.getID(), sub1.getName(), sub1.getDescription(),
+                TaskStatus.DONE, epic.getID(),
+                sub1.getStartTime(), sub1.getDuration()));
+
+        // Статус эпика должен остаться IN_PROGRESS
+        epic = taskManager.getEpicById(epic.getID());
+        assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
+
+        // Обновляем статус второй подзадачи (NEW -> IN_PROGRESS)
+        taskManager.updateSubtask(new Subtask(sub2.getID(), sub2.getName(), sub2.getDescription(),
+                TaskStatus.IN_PROGRESS, epic.getID(),
+                sub2.getStartTime(), sub2.getDuration()));
+
+        // Статус эпика должен остаться IN_PROGRESS
+        epic = taskManager.getEpicById(epic.getID());
+        assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
+
+        // Обновляем статус второй подзадачи (IN_PROGRESS -> DONE)
         taskManager.updateSubtask(new Subtask(sub2.getID(), sub2.getName(), sub2.getDescription(),
                 TaskStatus.DONE, epic.getID(),
                 sub2.getStartTime(), sub2.getDuration()));
@@ -291,9 +322,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     }
 
-    // Проверяет обновление эпиков при удалении всех подзадач
+    // Проверяет обновление статусов эпиков при удалении всех подзадач
     @Test
-    void shouldUpdateEpicsWhenRemovedAllSubtasks() {
+    void shouldUpdateEpicStatusWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
         Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW,
                 null, Duration.ZERO);
@@ -334,6 +365,63 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 "id подзадачи не был удалён из списка подзадач эпика");
         assertEquals(TaskStatus.NEW, epic2.getStatus(),
                 "status эпика не был обновлён при удалении всех его подзадач");
+    }
+
+    // Проверяет изменение временных характеристик эпика при добавлении подзадач
+    @Test
+    void shouldUpdateEpicTimeParamsWhenAddedSubtasks() {
+        // Создадим эпик и добавляем в трекер
+        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
+        taskManager.addEpic(epic);
+
+        // Создадим подзадачу
+        Subtask sub1 = new Subtask(10, "Subtask1", "description", TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        taskManager.addSubtask(sub1);
+
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        // Т.к. подзадача одна, то дата и время начала эпика, а также его продолжительность,
+        // равны соответствующим характеристикам его единственной подзадачи
+        epic = taskManager.getEpicById(epic.getID());
+        assertEquals(sub1.getStartTime(), epic.getStartTime(),
+                "Некорректное определение даты и времени начала эпика");
+        assertEquals(sub1.getDuration(), epic.getDuration(),
+                "Некорректное определение продолжительности эпика");
+        assertEquals(sub1.getEndTime(), epic.getEndTime(),
+                "Некорректное определение даты окончания эпика");
+
+        // Добавим ещё одну подзадачу, которая начинается после первой подзадачи
+        Subtask sub2 = new Subtask(11, "Subtask1", "description", TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 3, 1, 10, 0), Duration.ofMinutes(120));
+        taskManager.addSubtask(sub2);
+
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        // Дата и время начала равны дате и времени начала первой подзадачи
+        // Продолжительность равна сумме продолжительностей обеих подзадач
+        // Дата и время окончания равны дате и времени окончания второй подзадачи (т.к. она позднее)
+        epic = taskManager.getEpicById(epic.getID());
+        assertEquals(sub1.getStartTime(), epic.getStartTime(),
+                "Некорректное определение даты и времени начала эпика");
+        assertEquals(sub1.getDuration().plus(sub2.getDuration()), epic.getDuration(),
+                "Некорректное определение продолжительности эпика");
+        assertEquals(sub2.getEndTime(), epic.getEndTime(),
+                "Некорректное определение даты окончания эпика");
+
+        // Добавим ещё одну задачу, выполнение которой происходит между первой и второй подзадачей
+        // Дата и время начала/окончания эпика не изменятся, но изменится его продолжительность
+        Subtask sub3 = new Subtask(12, "Subtask1", "description", TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 2, 1, 10, 0), Duration.ofMinutes(180));
+        taskManager.addSubtask(sub3);
+
+        // Получаем эпик из трекера, ожидая, что он должен обновиться
+        epic = taskManager.getEpicById(epic.getID());
+        assertEquals(sub1.getStartTime(), epic.getStartTime(),
+                "Некорректное определение даты и времени начала эпика");
+        assertEquals(sub1.getDuration().plus(sub2.getDuration()).plus(sub3.getDuration()), epic.getDuration(),
+                "Некорректное определение продолжительности эпика");
+        assertEquals(sub2.getEndTime(), epic.getEndTime(),
+                "Некорректное определение даты окончания эпика");
     }
 
     // Проверяет, что при удалении всех эпиков удаляются все подзадачи
