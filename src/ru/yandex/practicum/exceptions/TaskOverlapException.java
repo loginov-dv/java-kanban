@@ -7,4 +7,9 @@ public class TaskOverlapException extends RuntimeException {
     public TaskOverlapException(String message, Throwable cause) {
         super(message, cause);
     }
+
+  // Конструктор класса TaskOverlapException
+    public TaskOverlapException(String message) {
+        super(message);
+    }
 }
