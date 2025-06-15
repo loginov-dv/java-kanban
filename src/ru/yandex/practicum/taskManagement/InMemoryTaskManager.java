@@ -23,7 +23,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HistoryManager historyManager;
 
     // Приоритезированное по дате начала множество задач и подзадач
-    private final Set<Task> prioritizedSet;
+    private final Set<Task> prioritySet;
 
     // Конструктор класса InMemoryTaskManager
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -31,7 +31,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
-        prioritizedSet = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+        prioritySet = new TreeSet<>(Comparator.comparing(Task::getStartTime));
         this.historyManager = historyManager;
     }
 
@@ -70,7 +70,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Удаляем все задачи из истории
         basicTasks.keySet().forEach(taskId -> historyManager.removeTask(taskId));
         // Удаляем все задачи из множества
-        prioritizedSet.removeAll(basicTasks.values());
+        prioritySet.removeAll(basicTasks.values());
         // Удаляем все задачи из трекера
         basicTasks.clear();
     }
@@ -84,7 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
         // Удаляем все подзадачи из множества
-        prioritizedSet.removeAll(subtasks.values());
+        prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
         subtasks.clear();
     }
@@ -99,7 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
         // Удаляем все подзадачи из множества
-        prioritizedSet.removeAll(subtasks.values());
+        prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
         subtasks.clear();
     }
@@ -138,11 +138,21 @@ public class InMemoryTaskManager implements TaskManager {
         if (basicTasks.containsKey(task.getID())) {
             return;
         }
-        // Добавляем новую задачу в хешмапу
-        basicTasks.put(task.getID(), task);
-        // Добавляем в множество, если у задачи есть дата и время начала
+
+        // При добавлении задачи проверяем наличие даты и времени начала
         if (task.getStartTime() != null) {
-            prioritizedSet.add(task);
+            // Если параметр задан, то добавляем задачу в мапу (и в множество) только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(task::hasIntersectionWith)) {
+                // TODO: исключение?
+                return;
+            }
+
+            basicTasks.put(task.getID(), task);
+            prioritySet.add(task);
+        } else {
+            // Если параметр не задан, то добавляем задачу только в мапу
+            basicTasks.put(task.getID(), task);
         }
     }
 
@@ -154,11 +164,19 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        // Добавляем новую подзадачу в хешмапу
-        subtasks.put(subtask.getID(), subtask);
-        // Добавляем в множество, если у подзадачи есть дата и время начала
+        // При добавлении подзадачи проверяем наличие даты и времени начала
         if (subtask.getStartTime() != null) {
-            prioritizedSet.add(subtask);
+            // Если параметр задан, то добавляем подзадачу в мапу (и в множество) только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(subtask::hasIntersectionWith)) {
+                return;
+            }
+
+            subtasks.put(subtask.getID(), subtask);
+            prioritySet.add(subtask);
+        } else {
+            // Если параметр не задан, то добавляем подзадачу только в мапу
+            subtasks.put(subtask.getID(), subtask);
         }
 
         // Обновляем эпик, к которому относится подзадача
@@ -193,23 +211,60 @@ public class InMemoryTaskManager implements TaskManager {
     // Обновление задачи (обычной)
     @Override
     public void updateBasicTask(Task updatedTask) {
-        basicTasks.put(updatedTask.getID(), updatedTask);
-        // Обновляем в множестве
-        prioritizedSet.remove(updatedTask);
+        // Ничего не делаем, если нет задачи с таким идентификатором
+        if (!subtasks.containsKey(updatedTask.getID())) {
+            return;
+        }
+
+        // При обновлении задачи проверяем наличие даты и времени начала
         if (updatedTask.getStartTime() != null) {
-            prioritizedSet.add(updatedTask);
+            // Если параметр задан, то обновляем задачу только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasIntersectionWith)) {
+                // TODO: исключение?
+                return;
+            }
+
+            basicTasks.put(updatedTask.getID(), updatedTask);
+            // Обновляем в множестве
+            prioritySet.remove(updatedTask);
+            if (updatedTask.getStartTime() != null) {
+                prioritySet.add(updatedTask);
+            }
+        } else {
+            // Если параметр не задан, то обновляем в мапе и удаляем из множества
+            basicTasks.put(updatedTask.getID(), updatedTask);
+            prioritySet.remove(updatedTask);
         }
     }
 
     // Обновление подзадачи
     @Override
     public void updateSubtask(Subtask updatedSubtask) {
-        // Обновляем подзадачу в хешмапе
-        subtasks.put(updatedSubtask.getID(), updatedSubtask);
-        // Обновляем в множестве
-        prioritizedSet.remove(updatedSubtask);
+        // Ничего не делаем, если нет подзадачи с таким идентификатором
+        if (!subtasks.containsKey(updatedSubtask.getID())) {
+            return;
+        }
+
+        // При обновлении подзадачи проверяем наличие даты и времени начала
         if (updatedSubtask.getStartTime() != null) {
-            prioritizedSet.add(updatedSubtask);
+            // Если параметр задан, то обновляем подзадачу только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasIntersectionWith)) {
+                // TODO: исключение?
+                return;
+            }
+
+            subtasks.put(updatedSubtask.getID(), updatedSubtask);
+            // Обновляем в множестве
+            prioritySet.remove(updatedSubtask);
+            if (updatedSubtask.getStartTime() != null) {
+                prioritySet.add(updatedSubtask);
+            }
+        } else {
+            // Если параметр не задан, то обновляем в мапе и удаляем из множества
+            subtasks.put(updatedSubtask.getID(), updatedSubtask);
+            prioritySet.remove(updatedSubtask);
         }
 
         // Обновляем эпик, к которому относится подзадача
@@ -232,6 +287,11 @@ public class InMemoryTaskManager implements TaskManager {
     // Обновление эпика
     @Override
     public void updateEpic(Epic updatedEpic) {
+        // Ничего не делаем, если нет эпика с таким идентификатором
+        if (!epics.containsKey(updatedEpic.getID())) {
+            return;
+        }
+
         epics.put(updatedEpic.getID(), updatedEpic);
     }
 
@@ -273,7 +333,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeBasicTaskById(int id) {
         // Удаляем задачу из множества
-        prioritizedSet.remove(basicTasks.get(id));
+        prioritySet.remove(basicTasks.get(id));
         // Удаляем задачу из трекера
         basicTasks.remove(id);
         // Удаляем задачу из истории
@@ -303,7 +363,7 @@ public class InMemoryTaskManager implements TaskManager {
         updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
 
         // Удаляем подзадачу из множества
-        prioritizedSet.remove(subtasks.get(id));
+        prioritySet.remove(subtasks.get(id));
         // Удаляем подзадачу из трекера
         subtasks.remove(id);
         // Удаляем подзадачу из истории
@@ -317,7 +377,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Удаляем подзадачи эпика
         getAllEpicSubtasks(epic).forEach(subtask -> {
-            prioritizedSet.remove(subtask);
+            prioritySet.remove(subtask);
             subtasks.remove(subtask.getID());
             historyManager.removeTask(subtask.getID());
         });
@@ -377,6 +437,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Возвращает список задач и подзадач в порядке приоритета (от более ранней даты начала к более поздней)
     public List<Task> getPrioritizedTasks() {
-        return new ArrayList<>(prioritizedSet);
+        return new ArrayList<>(prioritySet);
     }
 }
