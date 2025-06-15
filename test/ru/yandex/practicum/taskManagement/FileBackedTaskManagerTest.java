@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import ru.yandex.practicum.tasks.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     // Трекер задач
     private static TaskManager taskManager;
 
@@ -24,7 +24,7 @@ class FileBackedTaskManagerTest {
 
     // Инициализация трекера задач
     @BeforeEach
-    void beforeEach() {
+    protected void beforeEach() {
         try {
             saveFile = File.createTempFile("testSave", ".csv");
             saveFile.deleteOnExit();
@@ -307,7 +307,7 @@ class FileBackedTaskManagerTest {
         taskManager.addBasicTask(task4);
 
         // Создаём новый трекер из файла другого трекера
-        File anotherSaveFile = null;
+        File anotherSaveFile;
         try {
             anotherSaveFile = File.createTempFile("test1", ".csv");
         } catch (IOException e) {
