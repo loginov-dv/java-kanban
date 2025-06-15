@@ -2,6 +2,8 @@ package ru.yandex.practicum.taskManagement;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -179,22 +181,29 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(saveFile);
 
         // Добавляем задачи
-        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW);
-        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW);
+        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
+        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
+        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
         Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID());
+                TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.now(), Duration.ofMinutes(60));
         Subtask subtask12 = new Subtask(taskManager.nextId(), "Подзадача 12", "Описание",
-                TaskStatus.NEW, epic1.getID());
+                TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.now(), Duration.ofMinutes(60));
         Subtask subtask13 = new Subtask(taskManager.nextId(), "Подзадача 13", "Описание",
-                TaskStatus.NEW, epic1.getID());
+                TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
         taskManager.addSubtask(subtask12);
         taskManager.addSubtask(subtask13);
