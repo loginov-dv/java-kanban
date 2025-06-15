@@ -87,7 +87,7 @@ public class Task {
     // Создать объект Task из его строкового представления
     public static Task fromString(String value) throws IllegalArgumentException {
         List<String> args = parseLine(value);
-
+        // TODO: вынести логику и магические числа в отдельный класс
         if (args.size() != 8) {
             throw new IllegalArgumentException("Некорректный формат строки");
         }
@@ -104,7 +104,20 @@ public class Task {
 
     // Получить дату и время завершения задачи
     public LocalDateTime getEndTime() {
+        // TODO: а если нету даты и времени начала?
         return startTime.plus(duration);
+    }
+
+    // Проверяет пересечение двух задач по времени выполнения
+    public final boolean hasIntersectionWith(Task otherTask) {
+        // Если у одной из задач не указана дата и время начала, то не можем определить пересечение
+        if (getStartTime() == null || otherTask.getStartTime() == null) {
+            return false;
+        }
+
+        // Определение пересечения по методу наложения отрезков
+        return otherTask.getStartTime().isBefore(getEndTime())
+                || getEndTime().isAfter(otherTask.getStartTime());
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
