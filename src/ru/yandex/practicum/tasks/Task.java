@@ -19,9 +19,9 @@ public class Task {
     // Статус
     private final TaskStatus status;
     // Продолжительность выполнения задачи
-    private Duration duration;
+    private final Duration duration;
     // Дата и время начала выполнения задачи
-    private LocalDateTime startTime;
+    private final LocalDateTime startTime;
 
     // Конструктор класса Task
     public Task(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
