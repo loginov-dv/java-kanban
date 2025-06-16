@@ -40,13 +40,6 @@ public class Epic extends Task {
     }
 
     // Конструктор класса Epic
-    public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
-                Duration duration, LocalDateTime endTime) {
-        this(id, name, description, status, startTime, duration);
-        this.endTime = endTime;
-    }
-
-    // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, List<Integer> subtaskIDs,
                 LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
         this(id, name, description, status, subtaskIDs, startTime, duration);
