@@ -159,7 +159,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Добавление новой подзадачи
     @Override
-    public void addSubtask(Subtask subtask) {
+    public void addSubtask(Subtask subtask) throws TaskOverlapException {
         // Ничего не делаем, если уже есть подзадача с таким идентификатором
         if (subtasks.containsKey(subtask.getID())) {
             return;
@@ -218,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление задачи (обычной)
     @Override
-    public void updateBasicTask(Task updatedTask) {
+    public void updateBasicTask(Task updatedTask) throws TaskOverlapException {
         // Ничего не делаем, если нет задачи с таким идентификатором
         if (!basicTasks.containsKey(updatedTask.getID())) {
             return;
@@ -247,7 +247,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление подзадачи
     @Override
-    public void updateSubtask(Subtask updatedSubtask) {
+    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException {
         // Ничего не делаем, если нет подзадачи с таким идентификатором
         if (!subtasks.containsKey(updatedSubtask.getID())) {
             return;
