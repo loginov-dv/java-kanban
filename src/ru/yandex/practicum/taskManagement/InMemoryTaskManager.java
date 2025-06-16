@@ -108,29 +108,29 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение задачи (обычной) по id
     @Override
-    public Task getBasicTaskById(int id) {
+    public Optional<Task> getBasicTaskById(int id) {
         // Добавляем задачу в историю просмотра
         addToHistory(basicTasks.get(id));
 
-        return basicTasks.get(id);
+        return Optional.ofNullable(basicTasks.get(id));
     }
 
     // Получение подзадачи по id
     @Override
-    public Subtask getSubtaskById(int id) {
+    public Optional<Subtask> getSubtaskById(int id) {
         // Добавляем подзадачу в историю просмотра
         addToHistory(subtasks.get(id));
 
-        return subtasks.get(id);
+        return Optional.ofNullable(subtasks.get(id));
     }
 
     // Получение эпика по id
     @Override
-    public Epic getEpicById(int id) {
+    public Optional<Epic> getEpicById(int id) {
         // Добавляем эпик в историю просмотра
         addToHistory(epics.get(id));
 
-        return epics.get(id);
+        return Optional.ofNullable(epics.get(id));
     }
 
     // Добавление новой задачи (обычной)
