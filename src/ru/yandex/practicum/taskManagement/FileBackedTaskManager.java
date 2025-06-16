@@ -181,31 +181,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(saveFile);
 
         // Добавляем задачи
-        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW,
-                LocalDateTime.now(), Duration.ofMinutes(60));
-        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW,
-                LocalDateTime.now(), Duration.ofMinutes(60));
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 5, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 5, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW,
-                null, Duration.ZERO);
-        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW,
-                null, Duration.ZERO);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
-        Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID(),
-                LocalDateTime.now(), Duration.ofMinutes(60));
-        Subtask subtask12 = new Subtask(taskManager.nextId(), "Подзадача 12", "Описание",
-                TaskStatus.NEW, epic1.getID(),
-                LocalDateTime.now(), Duration.ofMinutes(60));
-        Subtask subtask13 = new Subtask(taskManager.nextId(), "Подзадача 13", "Описание",
-                TaskStatus.NEW, epic1.getID(),
-                LocalDateTime.now(), Duration.ofMinutes(60));
+        Subtask subtask11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
+        Subtask subtask12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask12);
+        Subtask subtask13 = new Subtask(21, "Subtask13", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 20, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask13);
 
         // Создаём новый трекер из файла другого трекера
