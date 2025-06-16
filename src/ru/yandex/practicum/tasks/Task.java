@@ -115,9 +115,16 @@ public class Task {
             return false;
         }
 
+        // Примыкающие друг к другу задачи, не считаем пересечениями
+        if (otherTask.getStartTime().isEqual(getEndTime()) || otherTask.getEndTime().isEqual(getStartTime())) {
+            return false;
+        }
+
         // Определение пересечения по методу наложения отрезков
-        return (otherTask.getStartTime().isBefore(getEndTime()) && otherTask.getStartTime().isAfter(getStartTime()))
-                || (otherTask.getEndTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()));
+        return (otherTask.getStartTime().isAfter(getStartTime()) && otherTask.getStartTime().isBefore(getEndTime()))
+                || (otherTask.getEndTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()))
+                || (otherTask.getStartTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()))
+                || (otherTask.getStartTime().isBefore(getStartTime()) && otherTask.getEndTime().isAfter(getEndTime()));
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
