@@ -16,6 +16,12 @@ public class Epic extends Task {
     // Дата и время завершения задачи
     private LocalDateTime endTime;
 
+    // Конструктор класса Epic (для вновь создаваемых эпиков)
+    public Epic(int id, String name, String description, TaskStatus status) {
+        // startTime и duration - расчётные, здесь присваиваем некоторые значения по умолчанию
+        this(id, name, description, status, null, Duration.ZERO);
+    }
+
     // Конструктор класса Epic
     public Epic(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
                 Duration duration) {
