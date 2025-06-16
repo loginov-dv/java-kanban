@@ -80,10 +80,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllSubtasks() {
         // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW,
-        // startTime будет null, duration задаём 0
+        // startTime будет null, а duration = 0
         epics.values().forEach(epic ->
-                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW,
-                        null, Duration.ZERO)));
+                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
         // Удаляем все подзадачи из множества
@@ -291,10 +290,8 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime newEndTime = calculateEpicEndTime(epic.getSubtaskIDs());
 
         // Пересоздаём эпик
-        if (epic.getStatus() != newEpicStatus) {
-            updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus,
-                    epic.getSubtaskIDs(), newStartTime, newDuration, newEndTime));
-        }
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus,
+                epic.getSubtaskIDs(), newStartTime, newDuration, newEndTime));
     }
 
     // Обновление эпика
@@ -372,11 +369,11 @@ public class InMemoryTaskManager implements TaskManager {
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epicSubtasks);
         // Рассчитываем новую дату начала
-        LocalDateTime newStartTime = calculateEpicStartTime(epic.getSubtaskIDs());
+        LocalDateTime newStartTime = calculateEpicStartTime(epicSubtasks);
         // Рассчитываем новую продолжительность
-        Duration newDuration = calculateEpicDuration(epic.getSubtaskIDs());
+        Duration newDuration = calculateEpicDuration(epicSubtasks);
         // Рассчитываем новую дату окончания
-        LocalDateTime newEndTime = calculateEpicEndTime(epic.getSubtaskIDs());
+        LocalDateTime newEndTime = calculateEpicEndTime(epicSubtasks);
 
         // Пересоздаём эпик
         updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks,
@@ -434,6 +431,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Расчёт продолжительности эпика, которая равна сумме продолжительностей его подзадач
     private Duration calculateEpicDuration(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return Duration.ZERO;
+        }
+        // Иначе рассчитываем
         return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getDuration())
                 .filter(Objects::nonNull)
@@ -441,8 +443,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Расчёт времени начала эпика, которое равно дате старта самой ранней подзадачи
-    private LocalDateTime calculateEpicStartTime(List<Integer> subtasksIDs) {
-        return subtasksIDs.stream()
+    private LocalDateTime calculateEpicStartTime(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return null;
+        }
+        // Иначе рассчитываем
+        return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
                 .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
@@ -450,8 +457,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Расчёт времени конца эпика, которое равно дате окончания самой поздней подзадачи
-    private LocalDateTime calculateEpicEndTime(List<Integer> subtasksIDs) {
-        return subtasksIDs.stream()
+    private LocalDateTime calculateEpicEndTime(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return null;
+        }
+        // Иначе рассчитываем
+        return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getEndTime())
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
