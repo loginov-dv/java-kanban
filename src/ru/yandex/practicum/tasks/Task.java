@@ -95,15 +95,15 @@ public class Task {
         }
 
         // Примыкающие друг к другу задачи, не считаем пересечениями
-        if (otherTask.getStartTime().get().isEqual(getEndTime().get()) || otherTask.getEndTime().get().isEqual(getStartTime().get())) {
+        // Здесь и далее в методе проверка isPresent() избыточна, поэтому опущена
+        if (otherTask.getStartTime().get().isEqual(getEndTime().get())
+                || otherTask.getEndTime().get().isEqual(getStartTime().get())) {
             return false;
         }
 
         // Определение пересечения по методу наложения отрезков
-        return (otherTask.getStartTime().get().isAfter(getStartTime().get()) && otherTask.getStartTime().get().isBefore(getEndTime().get()))
-                || (otherTask.getEndTime().get().isAfter(getStartTime().get()) && otherTask.getEndTime().get().isBefore(getEndTime().get()))
-                || (otherTask.getStartTime().get().isAfter(getStartTime().get()) && otherTask.getEndTime().get().isBefore(getEndTime().get()))
-                || (otherTask.getStartTime().get().isBefore(getStartTime().get()) && otherTask.getEndTime().get().isAfter(getEndTime().get()));
+        return this.getStartTime().get().isBefore(otherTask.getEndTime().get())
+                && this.getEndTime().get().isAfter(otherTask.getStartTime().get());
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
