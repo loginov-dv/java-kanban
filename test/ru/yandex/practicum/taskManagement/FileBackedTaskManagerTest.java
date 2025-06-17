@@ -310,17 +310,17 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager.addBasicTask(task1);
         // Создаём задачу, одно из полей которой содержит запятую
         Task task2 = new Task(taskManager.nextId(), "task, the second", "description", TaskStatus.NEW,
-                LocalDateTime.of(2022, 5, 20, 13, 0),
+                LocalDateTime.of(2022, 5, 21, 13, 0),
                 Duration.ofMinutes(60));
         taskManager.addBasicTask(task2);
         // Создаём задачу, одно из полей которой содержит и кавычки и запятую
         Task task3 = new Task(taskManager.nextId(), "task3", "\"very\", descriptive", TaskStatus.NEW,
-                LocalDateTime.of(2022, 5, 20, 13, 0),
+                LocalDateTime.of(2022, 5, 22, 13, 0),
                 Duration.ofMinutes(60));
         taskManager.addBasicTask(task3);
         // Создаём задачу, одно из полей которой кавычки, а другое - запятую
         Task task4 = new Task(taskManager.nextId(), "task,4", "\"descr", TaskStatus.NEW,
-                LocalDateTime.of(2022, 5, 20, 13, 0),
+                LocalDateTime.of(2022, 5, 23, 13, 0),
                 Duration.ofMinutes(60));
         taskManager.addBasicTask(task4);
 
