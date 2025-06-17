@@ -1,10 +1,11 @@
 package ru.yandex.practicum.tasks;
 
-import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
-import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Базовый класс для описания задачи
 public class Task {
@@ -16,21 +17,30 @@ public class Task {
     private final int id;
     // Статус
     private final TaskStatus status;
+    // Продолжительность выполнения задачи
+    private final Duration duration;
+    // Дата и время начала выполнения задачи
+    private final LocalDateTime startTime;
 
     // Конструктор класса Task
-    public Task(int id, String name, String description, TaskStatus status) {
+    public Task(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
+                Duration duration) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
-    // Конструктор копирования
+    // Конструктор копирования класса Task
     protected Task(Task otherTask) {
         this.name = otherTask.getName();
         this.description = otherTask.getDescription();
         this.id = otherTask.getID();
         this.status = otherTask.getStatus();
+        this.startTime = otherTask.getStartTime().orElse(null);
+        this.duration = otherTask.getDuration();
     }
 
     // Получить имя задачи
@@ -53,25 +63,41 @@ public class Task {
         return status;
     }
 
+    // Получить продолжительность задачи
+    public Duration getDuration() {
+        return duration;
+    }
+
+    // Получить дату и время начала задачи
+    public Optional<LocalDateTime> getStartTime() {
+        return Optional.ofNullable(startTime);
+    }
+
     // Возвращает копию текущего объекта Task
     public Task copy() {
         return new Task(this);
     }
 
-    // Создать объект Task из его строкового представления
-    public static Task fromString(String value) {
-        List<String> args = parseLine(value);
+    // Получить дату и время завершения задачи
+    public Optional<LocalDateTime> getEndTime() {
+        return (startTime == null || duration == null)
+                ? Optional.empty()
+                : Optional.of(startTime.plus(duration));
+    }
 
-        if (args.size() < 5 || args.size() > 6) {
-            throw new IllegalArgumentException("Некорректный формат строки");
+    // Проверяет пересечение двух задач по времени выполнения
+    public final boolean hasOverlapWith(Task otherTask) {
+        // Если у одной из задач не указана дата и время окончания,
+        // значит у неё отсутствует либо дата и время начала, либо продолжительность.
+        // В таком случае не можем определить пересечение
+        if (getEndTime().isEmpty() || otherTask.getEndTime().isEmpty()) {
+            return false;
         }
 
-        int id = Integer.parseInt(args.get(0));
-        String name = args.get(2);
-        TaskStatus status = TaskStatus.valueOf(args.get(3));
-        String description = args.get(4);
-
-        return new Task(id, name, description, status);
+        // Определение пересечения по методу наложения отрезков
+        // Проверка isPresent() избыточна, поэтому опущена
+        return this.getStartTime().get().isBefore(otherTask.getEndTime().get())
+                && this.getEndTime().get().isAfter(otherTask.getStartTime().get());
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
@@ -91,6 +117,8 @@ public class Task {
     @Override
     public String toString() {
         return getID() + "," + TaskType.TASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
-                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ",";
+                + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
+                + (getStartTime().isPresent() ? getStartTime().get().toString() : "") + ","
+                + (getDuration() != null ? getDuration().toMinutes() : "") + ",";
     }
 }

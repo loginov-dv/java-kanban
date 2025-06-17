@@ -2,19 +2,19 @@ package ru.yandex.practicum.taskManagement;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import ru.yandex.practicum.exceptions.*;
 import ru.yandex.practicum.tasks.*;
+import ru.yandex.practicum.utils.TaskParser;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     // Файл автосохранения
     private final File autoSaveFile;
-
-    // Заголовок файла при чтении/сохранении
-    public static final String HEADER = "id,type,name,status,description,epic";
 
     // Конструктор класса FileBackedTaskManager
     public FileBackedTaskManager(File autoSaveFile) {
@@ -25,7 +25,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     // Сохранение всех задач в файл
     private void save() {
         try (Writer writer = new FileWriter(autoSaveFile, StandardCharsets.UTF_8)) {
-            writer.write(HEADER + "\n");
+            writer.write(TaskParser.HEADER + "\n");
 
             List<Task> allTasks = new ArrayList<>();
             allTasks.addAll(getAllBasicTasks());
@@ -58,26 +58,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 }
 
-                // Всё, что находится за вторым элементом массива, на данном этапе не имеет значения
-                String[] args = line.split(",", 3);
-                // Тип задачи
-                TaskType type = TaskType.TASK.valueOf(args[1].toUpperCase());
+                Task parsedTask = TaskParser.parse(line);
 
-                switch (type) {
-                    case TASK:
-                        Task task = Task.fromString(line);
-                        manager.addBasicTask(task);
-                        break;
-                    case SUBTASK:
-                        Subtask subtask = Subtask.fromString(line);
-                        manager.addSubtask(subtask);
-                        break;
-                    case EPIC:
-                        Epic epic = Epic.fromString(line);
-                        manager.addEpic(epic);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Неизвестный тип задачи");
+                if (parsedTask instanceof Epic epic) {
+                    manager.addEpic(epic);
+                } else if (parsedTask instanceof Subtask subtask) {
+                    manager.addSubtask(subtask);
+                } else {
+                    manager.addBasicTask(parsedTask);
+                }
+
+                // Изменяем globalID в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
+                if (parsedTask.getID() > manager.globalID) {
+                    manager.globalID = parsedTask.getID();
                 }
             }
         } catch (IOException | IllegalArgumentException | IndexOutOfBoundsException exception) {
@@ -174,24 +167,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(saveFile);
 
         // Добавляем задачи
-        Task task1 = new Task(taskManager.nextId(), "Задача 1", "Описание", TaskStatus.NEW);
-        Task task2 = new Task(taskManager.nextId(), "Задача 2", "Описание", TaskStatus.NEW);
+        Task task1 = new Task(1, "Task1", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 5, 1, 10, 0), Duration.ofMinutes(60));
+        Task task2 = new Task(2, "Task2", "description", TaskStatus.IN_PROGRESS,
+                LocalDateTime.of(2025, 5, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(taskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(taskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
-        Subtask subtask11 = new Subtask(taskManager.nextId(), "Подзадача 11", "Описание",
-                TaskStatus.NEW, epic1.getID());
-        Subtask subtask12 = new Subtask(taskManager.nextId(), "Подзадача 12", "Описание",
-                TaskStatus.NEW, epic1.getID());
-        Subtask subtask13 = new Subtask(taskManager.nextId(), "Подзадача 13", "Описание",
-                TaskStatus.NEW, epic1.getID());
+        Subtask subtask11 = new Subtask(11, "Subtask11", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
+        Subtask subtask12 = new Subtask(12, "Subtask12", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask12);
+        Subtask subtask13 = new Subtask(21, "Subtask13", "description", TaskStatus.NEW, epic1.getID(),
+                LocalDateTime.of(2025, 1, 10, 20, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask13);
 
         // Создаём новый трекер из файла другого трекера

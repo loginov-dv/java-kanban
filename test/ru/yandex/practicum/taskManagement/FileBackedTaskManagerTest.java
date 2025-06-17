@@ -2,6 +2,9 @@ package ru.yandex.practicum.taskManagement;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import ru.yandex.practicum.tasks.*;
+import ru.yandex.practicum.utils.TaskParser;
 
-class FileBackedTaskManagerTest {
-    // Трекер задач
-    private static TaskManager taskManager;
-
+// Класс, содержащий тесты, относящиеся к специфическим методам FileBackedTaskManager
+// Если при работе с Optional опущен isPresent(), значит значение гарантированно присутствует
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     // Вспомогательные файлы
     private static File saveFile;
     private static File sourceFile;
@@ -22,7 +25,7 @@ class FileBackedTaskManagerTest {
 
     // Инициализация трекера задач
     @BeforeEach
-    void beforeEach() {
+    protected void beforeEach() {
         try {
             saveFile = File.createTempFile("testSave", ".csv");
             saveFile.deleteOnExit();
@@ -36,17 +39,22 @@ class FileBackedTaskManagerTest {
     @BeforeAll
     static void beforeAll() {
         // Создаём задачу (обычную)
-        Task task = new Task(1, "task", "description", TaskStatus.NEW);
+        Task task = new Task(1, "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 20, 13, 0),
+                Duration.ofMinutes(60));
         // Создаём эпик
-        Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(2, "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         // Создаём подзадачу
-        Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2);
+        Subtask subtask = new Subtask(3, "subtask", "description", TaskStatus.NEW, 2,
+                LocalDateTime.of(2022, 2, 20, 13, 0),
+                Duration.ofMinutes(60));
         try {
             // Записываем задачи в тестовый временный файл
             sourceFile = File.createTempFile("testSource", ".csv");
             sourceFile.deleteOnExit();
             try (Writer writer = new FileWriter(sourceFile, StandardCharsets.UTF_8)) {
-                String content = FileBackedTaskManager.HEADER + "\n" +
+                String content = TaskParser.HEADER + "\n" +
                         task + "\n" +
                         epic + "\n" +
                         subtask + "\n";
@@ -61,7 +69,7 @@ class FileBackedTaskManagerTest {
             onlyHeaderFile = File.createTempFile("testOnlyHeader", ".csv");
             onlyHeaderFile.deleteOnExit();
             try (Writer writer = new FileWriter(onlyHeaderFile, StandardCharsets.UTF_8)) {
-                writer.write(FileBackedTaskManager.HEADER + "\n");
+                writer.write(TaskParser.HEADER + "\n");
             }
         } catch (IOException exception) {
             exception.printStackTrace();
@@ -72,26 +80,32 @@ class FileBackedTaskManagerTest {
     @Test
     void shouldAddTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
         // Проверяем добавление задачи (обычной)
         assertEquals(1, taskManager.getAllBasicTasks().size(), "Задача не была добавлена в трекер");
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
         // Проверяем добавление эпика
         assertEquals(1, taskManager.getAllEpics().size(), "Эпик не был добавлен в трекер");
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
         // Проверяем добавление подзадачи
         assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
 
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID()).get();
+
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 task + "\n" +
                 epic + "\n" +
                 subtask + "\n";
@@ -115,25 +129,32 @@ class FileBackedTaskManagerTest {
     @Test
     void shouldUpdateTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Изменяем задачу (обычную)
         Task updatedTask = new Task(task.getID(), "updatedTask", "updatedDescription",
-                TaskStatus.IN_PROGRESS);
+                TaskStatus.IN_PROGRESS,
+                LocalDateTime.now(), Duration.ofMinutes(60));
         taskManager.updateBasicTask(updatedTask);
 
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID()).get();
+
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 updatedTask + "\n" +
                 epic + "\n" +
                 subtask + "\n";
@@ -157,23 +178,29 @@ class FileBackedTaskManagerTest {
     @Test
     void shouldRemoveTasks() {
         // Создаём задачу (обычную)
-        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW);
+        Task task = new Task(taskManager.nextId(), "task", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         taskManager.addBasicTask(task);
 
         // Создаём эпик
-        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(taskManager.nextId(), "epic", "description", TaskStatus.NEW,
+                null, Duration.ZERO);
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
         Subtask subtask = new Subtask(taskManager.nextId(), "subtask", "description",
-                TaskStatus.NEW, epic.getID());
+                TaskStatus.NEW, epic.getID(),
+                LocalDateTime.of(2025, 1, 2, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask);
 
         // Удаляем задачу (обычную)
         taskManager.removeBasicTaskById(task.getID());
 
+        // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
+        epic = taskManager.getEpicById(epic.getID()).get();
+
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 epic + "\n" +
                 subtask + "\n";
 
@@ -195,7 +222,7 @@ class FileBackedTaskManagerTest {
         taskManager.removeEpicById(epic.getID());
 
         // Ожидаемое содержимое файла (только заголовок)
-        contentExpected = FileBackedTaskManager.HEADER + "\n";
+        contentExpected = TaskParser.HEADER + "\n";
 
         // Фактическое содержимое файла
         contentFact = new StringBuilder();
@@ -228,21 +255,21 @@ class FileBackedTaskManagerTest {
                 "Подзадача не была добавлена в трекер");
 
         // Проверяем поля задачи (обычной)
-        Task task = taskManagerFromFile.getBasicTaskById(1);
-        assertNotNull(task, "Задача с id = 1 отсутствует в трекере");
-        assertEquals("task", task.getName(), "Некорректное наименование задачи с id = 1");
-        assertEquals("description", task.getDescription(), "Некорректное описание задачи с id = 1");
-        assertEquals(TaskStatus.NEW, task.getStatus(), "Некорректный статус задачи с id = 1");
+        Optional<Task> task = taskManagerFromFile.getBasicTaskById(1);
+        assertFalse(task.isEmpty(), "Задача с id = 1 отсутствует в трекере");
+        assertEquals("task", task.get().getName(), "Некорректное наименование задачи с id = 1");
+        assertEquals("description", task.get().getDescription(), "Некорректное описание задачи с id = 1");
+        assertEquals(TaskStatus.NEW, task.get().getStatus(), "Некорректный статус задачи с id = 1");
         // Для подзадачи проверим id эпика
-        Subtask subtask = taskManagerFromFile.getSubtaskById(3);
-        assertNotNull(subtask, "Поздадача с id = 3 отсутствует в трекере");
-        assertEquals(2, subtask.getEpicID(), "Некорректный id эпика у поздадачи с id = 3");
+        Optional<Subtask> subtask = taskManagerFromFile.getSubtaskById(3);
+        assertFalse(subtask.isEmpty(), "Поздадача с id = 3 отсутствует в трекере");
+        assertEquals(2, subtask.get().getEpicID(), "Некорректный id эпика у поздадачи с id = 3");
         // Для эпика проверим id его подзадач
-        Epic epic = taskManagerFromFile.getEpicById(2);
-        assertNotNull(epic, "Эпик с id = 2 отсутствует в трекере");
-        assertEquals(1, epic.getSubtaskIDs().size(),
+        Optional<Epic> epic = taskManagerFromFile.getEpicById(2);
+        assertFalse(epic.isEmpty(), "Эпик с id = 2 отсутствует в трекере");
+        assertEquals(1, epic.get().getSubtaskIDs().size(),
                 "Некорректное количество подзадач у эпика с id = 2");
-        assertEquals(3, epic.getSubtaskIDs().getFirst(),
+        assertEquals(3, epic.get().getSubtaskIDs().getFirst(),
                 "Некорректный номер подзадачи у эпика с id = 2");
     }
 
@@ -278,20 +305,28 @@ class FileBackedTaskManagerTest {
     @Test
     void shouldHandleQuotationMarksAndCommasInFileWhenRestoreStateFromFile() {
         // Создаём задачу, одно из полей которой содержит внутренние кавычки
-        Task task1 = new Task(taskManager.nextId(), "task1", "\"description\"", TaskStatus.NEW);
+        Task task1 = new Task(taskManager.nextId(), "task1", "\"description\"", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 20, 13, 0),
+                Duration.ofMinutes(60));
         taskManager.addBasicTask(task1);
         // Создаём задачу, одно из полей которой содержит запятую
-        Task task2 = new Task(taskManager.nextId(), "task, the second", "description", TaskStatus.NEW);
+        Task task2 = new Task(taskManager.nextId(), "task, the second", "description", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 21, 13, 0),
+                Duration.ofMinutes(60));
         taskManager.addBasicTask(task2);
         // Создаём задачу, одно из полей которой содержит и кавычки и запятую
-        Task task3 = new Task(taskManager.nextId(), "task3", "\"very\", descriptive", TaskStatus.NEW);
+        Task task3 = new Task(taskManager.nextId(), "task3", "\"very\", descriptive", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 22, 13, 0),
+                Duration.ofMinutes(60));
         taskManager.addBasicTask(task3);
         // Создаём задачу, одно из полей которой кавычки, а другое - запятую
-        Task task4 = new Task(taskManager.nextId(), "task,4", "\"descr", TaskStatus.NEW);
+        Task task4 = new Task(taskManager.nextId(), "task,4", "\"descr", TaskStatus.NEW,
+                LocalDateTime.of(2022, 5, 23, 13, 0),
+                Duration.ofMinutes(60));
         taskManager.addBasicTask(task4);
 
         // Создаём новый трекер из файла другого трекера
-        File anotherSaveFile = null;
+        File anotherSaveFile;
         try {
             anotherSaveFile = File.createTempFile("test1", ".csv");
         } catch (IOException e) {
@@ -306,12 +341,30 @@ class FileBackedTaskManagerTest {
 
         // Проверяем равенство полей отдельных задач
         for (Task originTask : taskManager.getAllBasicTasks()) {
-            Task anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
-            assertNotNull(anotherTask, "Не найдена задача с таким id в трекере, созданном из файла");
-            assertEquals(originTask.getName(), anotherTask.getName(), "Некорректное наименование задачи");
-            assertEquals(originTask.getDescription(), anotherTask.getDescription(),
+            Optional<Task> anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
+            assertFalse(anotherTask.isEmpty(), "Не найдена задача с таким id в трекере, созданном из файла");
+            assertEquals(originTask.getName(), anotherTask.get().getName(), "Некорректное наименование задачи");
+            assertEquals(originTask.getDescription(), anotherTask.get().getDescription(),
                     "Некорректное описание задачи");
-            assertEquals(originTask.getStatus(), anotherTask.getStatus(), "Некорректный статус задачи");
+            assertEquals(originTask.getStatus(), anotherTask.get().getStatus(), "Некорректный статус задачи");
         }
+    }
+
+    // Проверяем, что поле globalId обновляется соответствующим образом при чтении задач из файла, и что при создании
+    // новых задач через методы add... не происходит коллизий id задач
+    @Test
+    void shouldHaveNoIdCollisionsWhenRestoreStateFromFile() {
+        // Восстанавливаем состояние трекера из файла
+        FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(sourceFile, saveFile);
+
+        // Создаём новую задачу с id, который формирует метод трекера, и добавляем задачу в трекер
+        Task newTask = new Task(taskManagerFromFile.nextId(), "task name", "task descr", TaskStatus.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(60));
+        taskManagerFromFile.addBasicTask(newTask);
+
+        // Ожидаем, что теперь у нас две задачи в трекере (одна из файла и одна добавленная вручную)
+        // При необновлении поля globalId получили бы одну (новая задача перезаписала бы старую, т.к. их id равны)
+        assertEquals(2, taskManagerFromFile.getAllBasicTasks().size(),
+                "Некорректное добавление задач в трекер");
     }
 }
