@@ -40,32 +40,6 @@ public class Subtask extends Task {
         return new Subtask(this);
     }
 
-    // Создать объект класса Subtask из его строкового представления
-    public static Subtask fromString(String value) throws IllegalArgumentException {
-        List<String> args = parseLine(value);
-
-        if (args.size() != 8) {
-            throw new IllegalArgumentException("Некорректный формат строки");
-        }
-
-        int id = Integer.parseInt(args.get(0));
-        String name = args.get(2);
-        TaskStatus status = TaskStatus.valueOf(args.get(3));
-        String description = args.get(4);
-
-        LocalDateTime startTime;
-        if (args.get(5).isEmpty()) {
-            startTime = null;
-        } else {
-            startTime = LocalDateTime.parse(args.get(5));
-        }
-
-        Duration duration = Duration.ofMinutes(Long.parseLong(args.get(6)));
-        int epicID = Integer.parseInt(args.get(7));
-
-        return new Subtask(id, name, description, status, epicID, startTime, duration);
-    }
-
     @Override
     public String toString() {
         return getID() + "," + TaskType.SUBTASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","

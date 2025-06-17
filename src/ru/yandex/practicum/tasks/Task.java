@@ -79,32 +79,6 @@ public class Task {
         return new Task(this);
     }
 
-    // Создать объект Task из его строкового представления
-    public static Task fromString(String value) throws IllegalArgumentException {
-        List<String> args = parseLine(value);
-
-        // TODO: вынести логику и магические числа в отдельный класс
-        if (args.size() != 8) {
-            throw new IllegalArgumentException("Некорректный формат строки");
-        }
-
-        int id = Integer.parseInt(args.get(0));
-        String name = args.get(2);
-        TaskStatus status = TaskStatus.valueOf(args.get(3));
-        String description = args.get(4);
-
-        LocalDateTime startTime;
-        if (args.get(5).isEmpty()) {
-            startTime = null;
-        } else {
-            startTime = LocalDateTime.parse(args.get(5));
-        }
-
-        Duration duration = Duration.ofMinutes(Long.parseLong(args.get(6)));
-
-        return new Task(id, name, description, status, startTime, duration);
-    }
-
     // Получить дату и время завершения задачи
     public LocalDateTime getEndTime() {
         return startTime.plus(duration);
