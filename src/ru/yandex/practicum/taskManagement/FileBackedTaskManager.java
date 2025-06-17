@@ -16,9 +16,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     // Файл автосохранения
     private final File autoSaveFile;
 
-    // Заголовок файла при чтении/сохранении
-    public static final String HEADER = "id,type,name,status,description,startTime,duration,epic";
-
     // Конструктор класса FileBackedTaskManager
     public FileBackedTaskManager(File autoSaveFile) {
         super();
@@ -28,7 +25,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     // Сохранение всех задач в файл
     private void save() {
         try (Writer writer = new FileWriter(autoSaveFile, StandardCharsets.UTF_8)) {
-            writer.write(HEADER + "\n");
+            writer.write(TaskParser.HEADER + "\n");
 
             List<Task> allTasks = new ArrayList<>();
             allTasks.addAll(getAllBasicTasks());

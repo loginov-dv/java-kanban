@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import ru.yandex.practicum.tasks.*;
+import ru.yandex.practicum.utils.TaskParser;
 
 // Класс, содержащий тесты, относящиеся к специфическим методам FileBackedTaskManager
 // Если при работе с Optional опущен isPresent(), значит значение гарантированно присутствует
@@ -53,7 +54,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
             sourceFile = File.createTempFile("testSource", ".csv");
             sourceFile.deleteOnExit();
             try (Writer writer = new FileWriter(sourceFile, StandardCharsets.UTF_8)) {
-                String content = FileBackedTaskManager.HEADER + "\n" +
+                String content = TaskParser.HEADER + "\n" +
                         task + "\n" +
                         epic + "\n" +
                         subtask + "\n";
@@ -68,7 +69,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
             onlyHeaderFile = File.createTempFile("testOnlyHeader", ".csv");
             onlyHeaderFile.deleteOnExit();
             try (Writer writer = new FileWriter(onlyHeaderFile, StandardCharsets.UTF_8)) {
-                writer.write(FileBackedTaskManager.HEADER + "\n");
+                writer.write(TaskParser.HEADER + "\n");
             }
         } catch (IOException exception) {
             exception.printStackTrace();
@@ -104,7 +105,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         epic = taskManager.getEpicById(epic.getID()).get();
 
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 task + "\n" +
                 epic + "\n" +
                 subtask + "\n";
@@ -153,7 +154,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         epic = taskManager.getEpicById(epic.getID()).get();
 
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 updatedTask + "\n" +
                 epic + "\n" +
                 subtask + "\n";
@@ -199,7 +200,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         epic = taskManager.getEpicById(epic.getID()).get();
 
         // Ожидаемое содержимое файла
-        String contentExpected = FileBackedTaskManager.HEADER + "\n" +
+        String contentExpected = TaskParser.HEADER + "\n" +
                 epic + "\n" +
                 subtask + "\n";
 
@@ -221,7 +222,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager.removeEpicById(epic.getID());
 
         // Ожидаемое содержимое файла (только заголовок)
-        contentExpected = FileBackedTaskManager.HEADER + "\n";
+        contentExpected = TaskParser.HEADER + "\n";
 
         // Фактическое содержимое файла
         contentFact = new StringBuilder();

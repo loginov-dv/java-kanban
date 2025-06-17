@@ -23,6 +23,9 @@ public final class TaskParser {
     // Количество полей (в т.ч. пустых)
     public static final int FIELDS_COUNT = 8;
 
+    // Заголовок файла при чтении/сохранении
+    public static final String HEADER = "id,type,name,status,description,startTime,duration,epic";
+
     // Метод для парсинга задач
     public static Task parse(String line) throws IllegalArgumentException {
         List<String> parts = parseLine(line);
