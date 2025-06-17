@@ -229,7 +229,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (updatedTask.getStartTime().isPresent()) {
             // Если параметр задан, то обновляем задачу только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasOverlapWith)) {
+            if (getPrioritizedTasks().stream()
+                    .filter(task -> !task.equals(updatedTask))
+                    .anyMatch(updatedTask::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
@@ -258,7 +260,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (updatedSubtask.getStartTime().isPresent()) {
             // Если параметр задан, то обновляем подзадачу только если
             // она не пересекается по времени выполнения с другими задачами
-            if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasOverlapWith)) {
+            if (getPrioritizedTasks().stream()
+                    .filter(task -> !task.equals(updatedSubtask))
+                    .anyMatch(updatedSubtask::hasOverlapWith)) {
                 throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
             }
 
