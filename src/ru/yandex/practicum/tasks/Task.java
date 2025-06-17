@@ -94,14 +94,8 @@ public class Task {
             return false;
         }
 
-        // Примыкающие друг к другу задачи, не считаем пересечениями
-        // Здесь и далее в методе проверка isPresent() избыточна, поэтому опущена
-        if (otherTask.getStartTime().get().isEqual(getEndTime().get())
-                || otherTask.getEndTime().get().isEqual(getStartTime().get())) {
-            return false;
-        }
-
         // Определение пересечения по методу наложения отрезков
+        // Проверка isPresent() избыточна, поэтому опущена
         return this.getStartTime().get().isBefore(otherTask.getEndTime().get())
                 && this.getEndTime().get().isAfter(otherTask.getStartTime().get());
     }
