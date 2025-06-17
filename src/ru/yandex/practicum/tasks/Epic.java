@@ -4,9 +4,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
-import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
@@ -68,12 +68,12 @@ public class Epic extends Task {
     public String toString() {
         return getID() + "," + TaskType.EPIC.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
-                + (getStartTime() != null ? getStartTime().toString() : "") + ","
+                + (getStartTime().isPresent() ? getStartTime().get().toString() : "") + ","
                 + (getDuration() != null ? getDuration().toMinutes() : "") + ",";
     }
 
     @Override
-    public LocalDateTime getEndTime() {
-        return endTime;
+    public Optional<LocalDateTime> getEndTime() {
+        return Optional.ofNullable(endTime);
     }
 }

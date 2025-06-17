@@ -2,11 +2,10 @@ package ru.yandex.practicum.tasks;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
-import static ru.yandex.practicum.utils.CSVUtils.parseLine;
 
 // Базовый класс для описания задачи
 public class Task {
@@ -40,7 +39,7 @@ public class Task {
         this.description = otherTask.getDescription();
         this.id = otherTask.getID();
         this.status = otherTask.getStatus();
-        this.startTime = otherTask.getStartTime();
+        this.startTime = otherTask.getStartTime().orElse(null);
         this.duration = otherTask.getDuration();
     }
 
@@ -70,8 +69,8 @@ public class Task {
     }
 
     // Получить дату и время начала задачи
-    public LocalDateTime getStartTime() {
-        return startTime;
+    public Optional<LocalDateTime> getStartTime() {
+        return Optional.ofNullable(startTime);
     }
 
     // Возвращает копию текущего объекта Task
@@ -80,27 +79,31 @@ public class Task {
     }
 
     // Получить дату и время завершения задачи
-    public LocalDateTime getEndTime() {
-        return startTime.plus(duration);
+    public Optional<LocalDateTime> getEndTime() {
+        return (startTime == null || duration == null)
+                ? Optional.empty()
+                : Optional.of(startTime.plus(duration));
     }
 
     // Проверяет пересечение двух задач по времени выполнения
     public final boolean hasOverlapWith(Task otherTask) {
-        // Если у одной из задач не указана дата и время начала, то не можем определить пересечение
-        if (getStartTime() == null || otherTask.getStartTime() == null) {
+        // Если у одной из задач не указана дата и время окончания,
+        // значит у неё отсутствует либо дата и время начала, либо продолжительность.
+        // В таком случае не можем определить пересечение
+        if (getEndTime().isEmpty() || otherTask.getEndTime().isEmpty()) {
             return false;
         }
 
         // Примыкающие друг к другу задачи, не считаем пересечениями
-        if (otherTask.getStartTime().isEqual(getEndTime()) || otherTask.getEndTime().isEqual(getStartTime())) {
+        if (otherTask.getStartTime().get().isEqual(getEndTime().get()) || otherTask.getEndTime().get().isEqual(getStartTime().get())) {
             return false;
         }
 
         // Определение пересечения по методу наложения отрезков
-        return (otherTask.getStartTime().isAfter(getStartTime()) && otherTask.getStartTime().isBefore(getEndTime()))
-                || (otherTask.getEndTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()))
-                || (otherTask.getStartTime().isAfter(getStartTime()) && otherTask.getEndTime().isBefore(getEndTime()))
-                || (otherTask.getStartTime().isBefore(getStartTime()) && otherTask.getEndTime().isAfter(getEndTime()));
+        return (otherTask.getStartTime().get().isAfter(getStartTime().get()) && otherTask.getStartTime().get().isBefore(getEndTime().get()))
+                || (otherTask.getEndTime().get().isAfter(getStartTime().get()) && otherTask.getEndTime().get().isBefore(getEndTime().get()))
+                || (otherTask.getStartTime().get().isAfter(getStartTime().get()) && otherTask.getEndTime().get().isBefore(getEndTime().get()))
+                || (otherTask.getStartTime().get().isBefore(getStartTime().get()) && otherTask.getEndTime().get().isAfter(getEndTime().get()));
     }
 
     // Идентификация задачи происходит по id, т.е. две задачи с одним и тем же id считаются одинаковыми
@@ -121,7 +124,7 @@ public class Task {
     public String toString() {
         return getID() + "," + TaskType.TASK.getDisplayName() + "," + escapeSpecialCharacters(getName()) + ","
                 + getStatus().name() + "," + escapeSpecialCharacters(getDescription()) + ","
-                + (getStartTime() != null ? getStartTime().toString() : "") + ","
+                + (getStartTime().isPresent() ? getStartTime().get().toString() : "") + ","
                 + (getDuration() != null ? getDuration().toMinutes() : "") + ",";
     }
 }
