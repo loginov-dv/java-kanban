@@ -9,6 +9,7 @@ import java.util.List;
 
 import ru.yandex.practicum.exceptions.*;
 import ru.yandex.practicum.tasks.*;
+import ru.yandex.practicum.utils.TaskParser;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
@@ -60,31 +61,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 }
 
-                // Всё, что находится за вторым элементом массива, на данном этапе не имеет значения
-                String[] args = line.split(",", 3);
-                // Тип задачи
-                TaskType type = TaskType.TASK.valueOf(args[1].toUpperCase());
-                // Изменяем globalId в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
-                int maxId = Integer.parseInt(args[0]);
-                if (maxId >= manager.globalID) {
-                    manager.globalID = maxId;
+                Task parsedTask = TaskParser.parse(line);
+
+                if (parsedTask instanceof Epic epic) {
+                    manager.addEpic(epic);
+                } else if (parsedTask instanceof Subtask subtask) {
+                    manager.addSubtask(subtask);
+                } else {
+                    manager.addBasicTask(parsedTask);
                 }
 
-                switch (type) {
-                    case TASK:
-                        Task task = Task.fromString(line);
-                        manager.addBasicTask(task);
-                        break;
-                    case SUBTASK:
-                        Subtask subtask = Subtask.fromString(line);
-                        manager.addSubtask(subtask);
-                        break;
-                    case EPIC:
-                        Epic epic = Epic.fromString(line);
-                        manager.addEpic(epic);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Неизвестный тип задачи");
+                // Изменяем globalID в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
+                if (parsedTask.getID() > manager.globalID) {
+                    manager.globalID = parsedTask.getID();
                 }
             }
         } catch (IOException | IllegalArgumentException | IndexOutOfBoundsException exception) {
