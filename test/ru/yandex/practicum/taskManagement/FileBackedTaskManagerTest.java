@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import ru.yandex.practicum.tasks.*;
 
+// Класс, содержащий тесты, относящиеся к специфическим методам FileBackedTaskManager
+// Если при работе с Optional опущен isPresent(), значит значение гарантированно присутствует
 class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     // Вспомогательные файлы
     private static File saveFile;
@@ -99,7 +101,6 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
 
         // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
-        // Здесь и далее опускаем isPresent(), т.к. задача гарантированно присутствует
         epic = taskManager.getEpicById(epic.getID()).get();
 
         // Ожидаемое содержимое файла

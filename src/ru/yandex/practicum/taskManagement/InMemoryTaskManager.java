@@ -32,7 +32,8 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
-        prioritySet = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+        prioritySet = new TreeSet<>(Comparator.comparing(task -> task.getStartTime().orElse(null),
+                Comparator.nullsFirst(Comparator.naturalOrder())));
         this.historyManager = historyManager;
     }
 
@@ -69,7 +70,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllBasicTasks() {
         // Удаляем все задачи из истории
-        basicTasks.keySet().forEach(taskId -> historyManager.removeTask(taskId));
+        basicTasks.keySet().forEach(historyManager::removeTask);
         // Удаляем все задачи из множества
         prioritySet.removeAll(basicTasks.values());
         // Удаляем все задачи из трекера
@@ -84,7 +85,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics.values().forEach(epic ->
                 updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
         // Удаляем все подзадачи из истории
-        subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
+        subtasks.keySet().forEach(historyManager::removeTask);
         // Удаляем все подзадачи из множества
         prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
@@ -95,11 +96,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllEpics() {
         // Удаляем все эпики из истории
-        epics.keySet().forEach(epicId -> historyManager.removeTask(epicId));
+        epics.keySet().forEach(historyManager::removeTask);
         // Удаляем все эпики из трекера
         epics.clear();
         // Удаляем все подзадачи из истории
-        subtasks.keySet().forEach(subtaskId -> historyManager.removeTask(subtaskId));
+        subtasks.keySet().forEach(historyManager::removeTask);
         // Удаляем все подзадачи из множества
         prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
@@ -142,7 +143,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         // При добавлении задачи проверяем наличие даты и времени начала
-        if (task.getStartTime() != null) {
+        if (task.getStartTime().isPresent()) {
             // Если параметр задан, то добавляем задачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(task::hasOverlapWith)) {
@@ -166,7 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         // При добавлении подзадачи проверяем наличие даты и времени начала
-        if (subtask.getStartTime() != null) {
+        if (subtask.getStartTime().isPresent()) {
             // Если параметр задан, то добавляем подзадачу в мапу (и в множество) только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(subtask::hasOverlapWith)) {
@@ -225,7 +226,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         // При обновлении задачи проверяем наличие даты и времени начала
-        if (updatedTask.getStartTime() != null) {
+        if (updatedTask.getStartTime().isPresent()) {
             // Если параметр задан, то обновляем задачу только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(updatedTask::hasOverlapWith)) {
@@ -235,7 +236,7 @@ public class InMemoryTaskManager implements TaskManager {
             basicTasks.put(updatedTask.getID(), updatedTask);
             // Обновляем в множестве
             prioritySet.remove(updatedTask);
-            if (updatedTask.getStartTime() != null) {
+            if (updatedTask.getStartTime().isPresent()) {
                 prioritySet.add(updatedTask);
             }
         } else {
@@ -254,7 +255,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         // При обновлении подзадачи проверяем наличие даты и времени начала
-        if (updatedSubtask.getStartTime() != null) {
+        if (updatedSubtask.getStartTime().isPresent()) {
             // Если параметр задан, то обновляем подзадачу только если
             // она не пересекается по времени выполнения с другими задачами
             if (getPrioritizedTasks().stream().anyMatch(updatedSubtask::hasOverlapWith)) {
@@ -264,7 +265,7 @@ public class InMemoryTaskManager implements TaskManager {
             subtasks.put(updatedSubtask.getID(), updatedSubtask);
             // Обновляем в множестве
             prioritySet.remove(updatedSubtask);
-            if (updatedSubtask.getStartTime() != null) {
+            if (updatedSubtask.getStartTime().isPresent()) {
                 prioritySet.add(updatedSubtask);
             }
         } else {
@@ -451,7 +452,8 @@ public class InMemoryTaskManager implements TaskManager {
         // Иначе рассчитываем
         return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
-                .filter(Objects::nonNull)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
     }
@@ -465,7 +467,8 @@ public class InMemoryTaskManager implements TaskManager {
         // Иначе рассчитываем
         return subtaskIDs.stream()
                 .map(subtaskId -> subtasks.get(subtaskId).getEndTime())
-                .filter(Objects::nonNull)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
     }
