@@ -1,8 +1,12 @@
 package ru.yandex.practicum.taskManagement;
 
+import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.tasks.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Класс для описания трекера задач
 public class InMemoryTaskManager implements TaskManager {
@@ -14,10 +18,13 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Subtask> subtasks;
 
     // Последний присвоенный id
-    private int globalID;
+    protected int globalID;
 
     // Менеджер истории просмотра задач
     private final HistoryManager historyManager;
+
+    // Приоритезированное по дате начала множество задач и подзадач
+    private final Set<Task> prioritySet;
 
     // Конструктор класса InMemoryTaskManager
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -25,6 +32,8 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         globalID = 0;
+        prioritySet = new TreeSet<>(Comparator.comparing(task -> task.getStartTime().orElse(null),
+                Comparator.nullsFirst(Comparator.naturalOrder())));
         this.historyManager = historyManager;
     }
 
@@ -60,28 +69,25 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление всех задач (обычных)
     @Override
     public void removeAllBasicTasks() {
-        // Удаляем задачи из истории
-        for (Integer taskId : basicTasks.keySet()) {
-            historyManager.removeTask(taskId);
-        }
-
-        // Удаляем задачи из трекера
+        // Удаляем все задачи из истории
+        basicTasks.keySet().forEach(historyManager::removeTask);
+        // Удаляем все задачи из множества
+        prioritySet.removeAll(basicTasks.values());
+        // Удаляем все задачи из трекера
         basicTasks.clear();
     }
 
     // Удаление всех подзадач
     @Override
     public void removeAllSubtasks() {
-        // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW
-        for (Epic epic : epics.values()) {
-            updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW));
-        }
-
+        // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW,
+        // startTime будет null, а duration = 0
+        epics.values().forEach(epic ->
+                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
         // Удаляем все подзадачи из истории
-        for (Integer subtaskId : subtasks.keySet()) {
-            historyManager.removeTask(subtaskId);
-        }
-
+        subtasks.keySet().forEach(historyManager::removeTask);
+        // Удаляем все подзадачи из множества
+        prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
         subtasks.clear();
     }
@@ -90,65 +96,90 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllEpics() {
         // Удаляем все эпики из истории
-        for (Integer epicId : epics.keySet()) {
-            historyManager.removeTask(epicId);
-        }
-
+        epics.keySet().forEach(historyManager::removeTask);
         // Удаляем все эпики из трекера
         epics.clear();
-
         // Удаляем все подзадачи из истории
-        for (Integer subtaskId : subtasks.keySet()) {
-            historyManager.removeTask(subtaskId);
-        }
-
+        subtasks.keySet().forEach(historyManager::removeTask);
+        // Удаляем все подзадачи из множества
+        prioritySet.removeAll(subtasks.values());
         // Удаляем все подзадачи из трекера
         subtasks.clear();
     }
 
     // Получение задачи (обычной) по id
     @Override
-    public Task getBasicTaskById(int id) {
+    public Optional<Task> getBasicTaskById(int id) {
         // Добавляем задачу в историю просмотра
         addToHistory(basicTasks.get(id));
 
-        return basicTasks.get(id);
+        return Optional.ofNullable(basicTasks.get(id));
     }
 
     // Получение подзадачи по id
     @Override
-    public Subtask getSubtaskById(int id) {
+    public Optional<Subtask> getSubtaskById(int id) {
         // Добавляем подзадачу в историю просмотра
         addToHistory(subtasks.get(id));
 
-        return subtasks.get(id);
+        return Optional.ofNullable(subtasks.get(id));
     }
 
     // Получение эпика по id
     @Override
-    public Epic getEpicById(int id) {
+    public Optional<Epic> getEpicById(int id) {
         // Добавляем эпик в историю просмотра
         addToHistory(epics.get(id));
 
-        return epics.get(id);
+        return Optional.ofNullable(epics.get(id));
     }
 
     // Добавление новой задачи (обычной)
     @Override
-    public void addBasicTask(Task task) {
-        basicTasks.put(task.getID(), task);
+    public void addBasicTask(Task task) throws TaskOverlapException {
+        // Ничего не делаем, если уже есть задача с таким идентификатором
+        if (basicTasks.containsKey(task.getID())) {
+            return;
+        }
+
+        // При добавлении задачи проверяем наличие даты и времени начала
+        if (task.getStartTime().isPresent()) {
+            // Если параметр задан, то добавляем задачу в мапу (и в множество) только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(task::hasOverlapWith)) {
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
+            }
+
+            basicTasks.put(task.getID(), task);
+            prioritySet.add(task);
+        } else {
+            // Если параметр не задан, то добавляем задачу только в мапу
+            basicTasks.put(task.getID(), task);
+        }
     }
 
     // Добавление новой подзадачи
     @Override
-    public void addSubtask(Subtask subtask) {
+    public void addSubtask(Subtask subtask) throws TaskOverlapException {
         // Ничего не делаем, если уже есть подзадача с таким идентификатором
         if (subtasks.containsKey(subtask.getID())) {
             return;
         }
 
-        // Добавляем новую подзадачу в хешмапу
-        subtasks.put(subtask.getID(), subtask);
+        // При добавлении подзадачи проверяем наличие даты и времени начала
+        if (subtask.getStartTime().isPresent()) {
+            // Если параметр задан, то добавляем подзадачу в мапу (и в множество) только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream().anyMatch(subtask::hasOverlapWith)) {
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
+            }
+
+            subtasks.put(subtask.getID(), subtask);
+            prioritySet.add(subtask);
+        } else {
+            // Если параметр не задан, то добавляем подзадачу только в мапу
+            subtasks.put(subtask.getID(), subtask);
+        }
 
         // Обновляем эпик, к которому относится подзадача
         if (subtask.getEpicID() == null) {
@@ -168,9 +199,16 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epicSubtasks);
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epicSubtasks);
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epicSubtasks);
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epicSubtasks);
 
         // Пересоздаём эпик
-        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks,
+                newStartTime, newDuration, newEndTime));
     }
 
     // Добавление нового эпика
@@ -181,15 +219,64 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление задачи (обычной)
     @Override
-    public void updateBasicTask(Task updatedTask) {
-        basicTasks.put(updatedTask.getID(), updatedTask);
+    public void updateBasicTask(Task updatedTask) throws TaskOverlapException {
+        // Ничего не делаем, если нет задачи с таким идентификатором
+        if (!basicTasks.containsKey(updatedTask.getID())) {
+            return;
+        }
+
+        // При обновлении задачи проверяем наличие даты и времени начала
+        if (updatedTask.getStartTime().isPresent()) {
+            // Если параметр задан, то обновляем задачу только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream()
+                    .filter(task -> !task.equals(updatedTask))
+                    .anyMatch(updatedTask::hasOverlapWith)) {
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
+            }
+
+            basicTasks.put(updatedTask.getID(), updatedTask);
+            // Обновляем в множестве
+            prioritySet.remove(updatedTask);
+            if (updatedTask.getStartTime().isPresent()) {
+                prioritySet.add(updatedTask);
+            }
+        } else {
+            // Если параметр не задан, то обновляем в мапе и удаляем из множества
+            basicTasks.put(updatedTask.getID(), updatedTask);
+            prioritySet.remove(updatedTask);
+        }
     }
 
     // Обновление подзадачи
     @Override
-    public void updateSubtask(Subtask updatedSubtask) {
-        // Обновляем подзадачу в хешмапе
-        subtasks.put(updatedSubtask.getID(), updatedSubtask);
+    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException {
+        // Ничего не делаем, если нет подзадачи с таким идентификатором
+        if (!subtasks.containsKey(updatedSubtask.getID())) {
+            return;
+        }
+
+        // При обновлении подзадачи проверяем наличие даты и времени начала
+        if (updatedSubtask.getStartTime().isPresent()) {
+            // Если параметр задан, то обновляем подзадачу только если
+            // она не пересекается по времени выполнения с другими задачами
+            if (getPrioritizedTasks().stream()
+                    .filter(task -> !task.equals(updatedSubtask))
+                    .anyMatch(updatedSubtask::hasOverlapWith)) {
+                throw new TaskOverlapException("Задача имеет пересечение по времени выполнения с другой задачей");
+            }
+
+            subtasks.put(updatedSubtask.getID(), updatedSubtask);
+            // Обновляем в множестве
+            prioritySet.remove(updatedSubtask);
+            if (updatedSubtask.getStartTime().isPresent()) {
+                prioritySet.add(updatedSubtask);
+            }
+        } else {
+            // Если параметр не задан, то обновляем в мапе и удаляем из множества
+            subtasks.put(updatedSubtask.getID(), updatedSubtask);
+            prioritySet.remove(updatedSubtask);
+        }
 
         // Обновляем эпик, к которому относится подзадача
         if (updatedSubtask.getEpicID() == null) {
@@ -200,27 +287,35 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epic.getSubtaskIDs());
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epic.getSubtaskIDs());
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epic.getSubtaskIDs());
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epic.getSubtaskIDs());
 
-        // Пересоздаём эпик, если новый рассчитанный статус отличается от текущего (в иных случаях не требуется)
-        if (epic.getStatus() != newEpicStatus) {
-            updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus,
-                    epic.getSubtaskIDs()));
-        }
+        // Пересоздаём эпик
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus,
+                epic.getSubtaskIDs(), newStartTime, newDuration, newEndTime));
     }
 
     // Обновление эпика
     @Override
     public void updateEpic(Epic updatedEpic) {
+        // Ничего не делаем, если нет эпика с таким идентификатором
+        if (!epics.containsKey(updatedEpic.getID())) {
+            return;
+        }
+
         epics.put(updatedEpic.getID(), updatedEpic);
     }
 
     // Расчёт статуса эпика на основе статусов его подзадач
     private TaskStatus calculateEpicStatus(List<Integer> subtaskIDs) {
         // Подзадачи, относящиеся к эпику
-        List<Subtask> epicSubtasks = new ArrayList<>();
-        for (Integer subtaskID : subtaskIDs) {
-            epicSubtasks.add(subtasks.get(subtaskID));
-        }
+        List<Subtask> epicSubtasks = subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId))
+                .collect(Collectors.toList());
 
         if (epicSubtasks.isEmpty()) {
             return TaskStatus.NEW;
@@ -252,10 +347,11 @@ public class InMemoryTaskManager implements TaskManager {
     // Удаление задачи (обычной) по id
     @Override
     public void removeBasicTaskById(int id) {
-        // Удаляем из трекера
+        // Удаляем задачу из множества
+        prioritySet.remove(basicTasks.get(id));
+        // Удаляем задачу из трекера
         basicTasks.remove(id);
-
-        // Удаляем из истории
+        // Удаляем задачу из истории
         historyManager.removeTask(id);
     }
 
@@ -277,13 +373,21 @@ public class InMemoryTaskManager implements TaskManager {
 
         // Рассчитываем новый статус
         TaskStatus newEpicStatus = calculateEpicStatus(epicSubtasks);
+        // Рассчитываем новую дату начала
+        LocalDateTime newStartTime = calculateEpicStartTime(epicSubtasks);
+        // Рассчитываем новую продолжительность
+        Duration newDuration = calculateEpicDuration(epicSubtasks);
+        // Рассчитываем новую дату окончания
+        LocalDateTime newEndTime = calculateEpicEndTime(epicSubtasks);
 
         // Пересоздаём эпик
-        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks));
+        updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), newEpicStatus, epicSubtasks,
+                newStartTime, newDuration, newEndTime));
 
+        // Удаляем подзадачу из множества
+        prioritySet.remove(subtasks.get(id));
         // Удаляем подзадачу из трекера
         subtasks.remove(id);
-
         // Удаляем подзадачу из истории
         historyManager.removeTask(id);
     }
@@ -294,10 +398,11 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
 
         // Удаляем подзадачи эпика
-        for (Subtask subtask : getAllEpicSubtasks(epic)) {
+        getAllEpicSubtasks(epic).forEach(subtask -> {
+            prioritySet.remove(subtask);
             subtasks.remove(subtask.getID());
             historyManager.removeTask(subtask.getID());
-        }
+        });
 
         // Удаляем эпик из трекера
         epics.remove(id);
@@ -312,12 +417,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (!epics.containsKey(epic.getID())) {
             return Collections.emptyList();
         } else {
-            List<Subtask> epicSubtasks = new ArrayList<>();
-            for (Integer subtaskID : epic.getSubtaskIDs()) {
-                epicSubtasks.add(subtasks.get(subtaskID));
-            }
-
-            return epicSubtasks;
+            return epic.getSubtaskIDs().stream()
+                    .map(subtaskId -> subtasks.get(subtaskId))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -330,5 +432,53 @@ public class InMemoryTaskManager implements TaskManager {
     // Добавить задачу в историю просмотра
     private void addToHistory(Task task) {
         historyManager.addTask(task);
+    }
+
+    // Расчёт продолжительности эпика, которая равна сумме продолжительностей его подзадач
+    private Duration calculateEpicDuration(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return Duration.ZERO;
+        }
+        // Иначе рассчитываем
+        return subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getDuration())
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
+    // Расчёт времени начала эпика, которое равно дате старта самой ранней подзадачи
+    private LocalDateTime calculateEpicStartTime(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return null;
+        }
+        // Иначе рассчитываем
+        return subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getStartTime())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .min(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    // Расчёт времени конца эпика, которое равно дате окончания самой поздней подзадачи
+    private LocalDateTime calculateEpicEndTime(List<Integer> subtaskIDs) {
+        // Если подзадачи отсутствуют
+        if (subtaskIDs.isEmpty()) {
+            return null;
+        }
+        // Иначе рассчитываем
+        return subtaskIDs.stream()
+                .map(subtaskId -> subtasks.get(subtaskId).getEndTime())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
+    // Возвращает список задач и подзадач в порядке приоритета (от более ранней даты начала к более поздней)
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritySet);
     }
 }
