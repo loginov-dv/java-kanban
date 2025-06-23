@@ -32,22 +32,38 @@ public class TasksHandler implements HttpHandler {
                     List<Task> tasks = HttpTaskServer.manager.getAllBasicTasks();
                     String tasksJson = gson.toJson(tasks);
                     writeResponse(exchange, tasksJson, 200);
+                    break;
                 } else if (pathParts.length == 3) {
                     // GET /tasks/{id}
+                    Optional<Integer> maybeId = getIdFromPath(path);
+                    if (maybeId.isEmpty()) {
+                        writeResponse(exchange, "Некорректный id задачи", 404);
+                    } else {
+                        Optional<Task> maybeTask = HttpTaskServer.manager.getBasicTaskById(maybeId.get());
+
+                        if (maybeTask.isEmpty()) {
+                            writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
+                                    404);
+                        } else {
+                            Task task = maybeTask.get();
+                            String taskJson = gson.toJson(task);
+                            writeResponse(exchange, taskJson, 200);
+                        }
+                    }
                 } else {
-                    // throw
+                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
             case "POST":
                 if (pathParts.length == 2) {
                     // POST /tasks
                 } else {
-                    // throw
+                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
             case "DELETE":
                 if (pathParts.length == 3) {
                     // DELETE /tasks/{id}
                 } else {
-                    // throw
+                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
             default:
                 writeResponse(exchange, "Такого эндпоинта не существует", 404);
