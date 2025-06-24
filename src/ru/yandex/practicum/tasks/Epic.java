@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CsvUtils.escapeSpecialCharacters;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
