@@ -62,6 +62,14 @@ public class TasksHandler implements HttpHandler {
             case "DELETE":
                 if (pathParts.length == 3) {
                     // DELETE /tasks/{id}
+                    Optional<Integer> maybeId = getIdFromPath(path);
+                    if (maybeId.isEmpty()) {
+                        // В ТЗ не сказано обрабатывать такую ситуацию
+                        writeResponse(exchange, "Некорректный id задачи", 404);
+                    } else {
+                        HttpTaskServer.manager.removeBasicTaskById(maybeId.get());
+                        writeResponse(exchange, "", 200);
+                    }
                 } else {
                     writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
