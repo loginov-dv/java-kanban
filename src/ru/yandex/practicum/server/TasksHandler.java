@@ -51,21 +51,19 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                         Optional<Integer> maybeId = getIdFromPath(path);
                         if (maybeId.isEmpty()) {
                             writeResponse(exchange, "Некорректный id задачи", 404);
-                            break;
                         } else {
                             Optional<Task> maybeTask = taskManager.getBasicTaskById(maybeId.get());
 
                             if (maybeTask.isEmpty()) {
                                 writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
                                         404);
-                                break;
                             } else {
                                 Task task = maybeTask.get();
                                 String taskJson = gson.toJson(task);
                                 writeResponse(exchange, taskJson, 200);
-                                break;
                             }
                         }
+                        break;
                     } catch (Exception exception) {
                         writeResponse(exchange, "Ошибка: " + exception.getMessage(), 500);
                     }
@@ -88,8 +86,8 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                         }
                         JsonObject jsonObject = jsonElement.getAsJsonObject();
                         JsonElement idJson = jsonObject.get("id");
+                        Task task = gson.fromJson(body, Task.class);
                         if (idJson == null) { // Передан task без id - новый
-                            Task task = gson.fromJson(body, Task.class);
                             if (task.getID() == 0) {
                                 task = new Task(taskManager.nextId(), task.getName(), task.getDescription(),
                                         task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
@@ -97,7 +95,6 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                             taskManager.addBasicTask(task);
                             writeResponse(exchange, "", 201);
                         } else { // Передан task с id - модификация
-                            Task task = gson.fromJson(body, Task.class);
                             taskManager.updateBasicTask(task);
                             writeResponse(exchange, "", 201);
                             break;
@@ -126,6 +123,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 } else {
                     writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
+                break;
             default:
                 writeResponse(exchange, "Такого эндпоинта не существует", 404);
         }
