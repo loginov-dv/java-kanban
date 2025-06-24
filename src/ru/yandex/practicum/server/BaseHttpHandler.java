@@ -17,6 +17,10 @@ import java.util.Optional;
 // Базовый класс для всех обработчиков
 public class BaseHttpHandler {
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    // Константы для HTTP-методов
+    protected static final String GET = "GET";
+    protected static final String POST = "POST";
+    protected static final String DELETE = "DELETE";
 
     // Получить id задачи из пути
     protected Optional<Integer> getIdFromPath(String path) {
