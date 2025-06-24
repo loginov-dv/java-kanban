@@ -1,10 +1,8 @@
 package ru.yandex.practicum.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -13,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -151,5 +150,17 @@ public class TasksHandler implements HttpHandler {
             os.write(responseString.getBytes(DEFAULT_CHARSET));
         }
         exchange.close();
+    }
+}
+// TypeAdapter для преобразования Duration в long
+class DurationAdapter extends TypeAdapter<Duration> {
+    @Override
+    public void write(final JsonWriter jsonWriter, final Duration duration) throws IOException {
+        jsonWriter.value(duration.toMinutes());
+    }
+
+    @Override
+    public Duration read(final JsonReader jsonReader) throws IOException {
+        return Duration.ofMinutes(jsonReader.nextLong());
     }
 }
