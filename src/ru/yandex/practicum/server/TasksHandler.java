@@ -16,12 +16,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Task;
 
 public class TasksHandler implements HttpHandler {
+
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     private final Gson gson = new GsonBuilder().create();
+
+    private final TaskManager taskManager;
+
+    public TasksHandler(TaskManager taskManager) {
+        this.taskManager = taskManager;
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -34,7 +42,7 @@ public class TasksHandler implements HttpHandler {
                 if (pathParts.length == 2) {
                     try {
                         // GET /tasks
-                        List<Task> tasks = HttpTaskServer.manager.getAllBasicTasks();
+                        List<Task> tasks = taskManager.getAllBasicTasks();
                         String tasksJson = gson.toJson(tasks);
                         writeResponse(exchange, tasksJson, 200);
                         break;
@@ -49,7 +57,7 @@ public class TasksHandler implements HttpHandler {
                             writeResponse(exchange, "Некорректный id задачи", 404);
                             break;
                         } else {
-                            Optional<Task> maybeTask = HttpTaskServer.manager.getBasicTaskById(maybeId.get());
+                            Optional<Task> maybeTask = taskManager.getBasicTaskById(maybeId.get());
 
                             if (maybeTask.isEmpty()) {
                                 writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
@@ -87,14 +95,14 @@ public class TasksHandler implements HttpHandler {
                         if (idJson == null) { // Передан task без id - новый
                             Task task = gson.fromJson(body, Task.class);
                             if (task.getID() == 0) {
-                                task = new Task(HttpTaskServer.manager.nextId(), task.getName(), task.getDescription(),
+                                task = new Task(taskManager.nextId(), task.getName(), task.getDescription(),
                                         task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
                             }
-                            HttpTaskServer.manager.addBasicTask(task);
+                            taskManager.addBasicTask(task);
                             writeResponse(exchange, "", 201);
                         } else { // Передан task с id - модификация
                             Task task = gson.fromJson(body, Task.class);
-                            HttpTaskServer.manager.updateBasicTask(task);
+                            taskManager.updateBasicTask(task);
                             writeResponse(exchange, "", 201);
                             break;
                         }
@@ -113,7 +121,7 @@ public class TasksHandler implements HttpHandler {
                             // В ТЗ не сказано обрабатывать такую ситуацию
                             writeResponse(exchange, "Некорректный id задачи", 404);
                         } else {
-                            HttpTaskServer.manager.removeBasicTaskById(maybeId.get());
+                            taskManager.removeBasicTaskById(maybeId.get());
                             writeResponse(exchange, "", 200);
                         }
                     } catch (Exception exception) {

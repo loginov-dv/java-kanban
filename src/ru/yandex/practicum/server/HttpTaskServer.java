@@ -10,10 +10,12 @@ import java.net.InetSocketAddress;
 
 public class HttpTaskServer {
     private static final int PORT = 8080;
-    protected static final TaskManager manager = Managers.getInMemoryTaskManager();
+    private static final TaskManager manager = Managers.getInMemoryTaskManager();
 
     public static void main(String[] args) throws IOException {
         HttpServer httpServer = HttpServer.create();
         httpServer.bind(new InetSocketAddress(PORT), 0);
+        httpServer.createContext("/tasks", new TasksHandler(manager));
+        httpServer.start();
     }
 }
