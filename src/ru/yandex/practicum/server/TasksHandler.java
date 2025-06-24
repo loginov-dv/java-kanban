@@ -2,10 +2,14 @@ package ru.yandex.practicum.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -38,24 +42,51 @@ public class TasksHandler implements HttpHandler {
                     Optional<Integer> maybeId = getIdFromPath(path);
                     if (maybeId.isEmpty()) {
                         writeResponse(exchange, "Некорректный id задачи", 404);
+                        break;
                     } else {
                         Optional<Task> maybeTask = HttpTaskServer.manager.getBasicTaskById(maybeId.get());
 
                         if (maybeTask.isEmpty()) {
                             writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
                                     404);
+                            break;
                         } else {
                             Task task = maybeTask.get();
                             String taskJson = gson.toJson(task);
                             writeResponse(exchange, taskJson, 200);
+                            break;
                         }
                     }
                 } else {
                     writeResponse(exchange, "Такого эндпоинта не существует", 404);
+                    break;
                 }
             case "POST":
                 if (pathParts.length == 2) {
                     // POST /tasks
+                    // получаем входящий поток байтов
+                    InputStream inputStream = exchange.getRequestBody();
+                    // дожидаемся получения всех данных в виде массива байтов и конвертируем их в строку
+                    String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                    JsonElement jsonElement = JsonParser.parseString(body);
+                    if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
+                        writeResponse(exchange, "Некорректный формат", 400);
+                        break;
+                    }
+                    JsonObject jsonObject = jsonElement.getAsJsonObject();
+                    JsonElement idJson = jsonObject.get("id");
+                    if (idJson == null) { // Передан task без id - новый
+                        Task task = gson.fromJson(body, Task.class);
+                        if (task.getID() == 0) {
+                            task = new Task(HttpTaskServer.manager.nextId(), task.getName(), task.getDescription(),
+                                    task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
+                        }
+                    } else {
+                        Task task = gson.fromJson(body, Task.class);
+                        HttpTaskServer.manager.updateBasicTask(task);
+                        writeResponse(exchange, "", 200);
+                        break;
+                    }
                 } else {
                     writeResponse(exchange, "Такого эндпоинта не существует", 404);
                 }
