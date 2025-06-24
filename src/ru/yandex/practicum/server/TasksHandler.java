@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -162,5 +164,21 @@ class DurationAdapter extends TypeAdapter<Duration> {
     @Override
     public Duration read(final JsonReader jsonReader) throws IOException {
         return Duration.ofMinutes(jsonReader.nextLong());
+    }
+}
+
+// TypeAdapter для преобразования LocalDateTime в String
+class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+    @Override
+    public void write(final JsonWriter jsonWriter,
+                      final LocalDateTime localDateTime) throws IOException {
+        jsonWriter.value(localDateTime.format(dtf));
+    }
+
+    @Override
+    public LocalDateTime read(final JsonReader jsonReader) throws IOException {
+        return LocalDateTime.parse(jsonReader.nextString(), dtf);
     }
 }
