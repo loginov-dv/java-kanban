@@ -5,24 +5,25 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
+import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Task;
 
+// Обработчик пути /tasks
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new DurationAdapter())
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .create();
-
+    // Экземпляр класса, реализующего TaskManager
     private final TaskManager taskManager;
 
+    // Конструктор класса TasksHandler
     public TasksHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
@@ -31,101 +32,123 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
-        String[] pathParts = path.split("/");
 
         switch (method) {
-            case "GET":
-                if (pathParts.length == 2) {
-                    try {
-                        // GET /tasks
-                        List<Task> tasks = taskManager.getAllBasicTasks();
-                        String tasksJson = gson.toJson(tasks);
-                        writeResponse(exchange, tasksJson, 200);
-                        break;
-                    } catch (Exception exception) {
-                        writeResponse(exchange, "Ошибка: " + exception.getMessage(), 500);
-                    }
-                } else if (pathParts.length == 3) {
-                    try {
-                        // GET /tasks/{id}
-                        Optional<Integer> maybeId = getIdFromPath(path);
-                        if (maybeId.isEmpty()) {
-                            writeResponse(exchange, "Некорректный id задачи", 404);
-                        } else {
-                            Optional<Task> maybeTask = taskManager.getBasicTaskById(maybeId.get());
-
-                            if (maybeTask.isEmpty()) {
-                                writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
-                                        404);
-                            } else {
-                                Task task = maybeTask.get();
-                                String taskJson = gson.toJson(task);
-                                writeResponse(exchange, taskJson, 200);
-                            }
-                        }
-                        break;
-                    } catch (Exception exception) {
-                        writeResponse(exchange, "Ошибка: " + exception.getMessage(), 500);
-                    }
-                } else {
-                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
-                    break;
-                }
-            case "POST":
-                if (pathParts.length == 2) {
-                    try {
-                        // POST /tasks
-                        // получаем входящий поток байтов
-                        InputStream inputStream = exchange.getRequestBody();
-                        // дожидаемся получения всех данных в виде массива байтов и конвертируем их в строку
-                        String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                        JsonElement jsonElement = JsonParser.parseString(body);
-                        if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
-                            writeResponse(exchange, "Некорректный формат", 400);
-                            break;
-                        }
-                        JsonObject jsonObject = jsonElement.getAsJsonObject();
-                        JsonElement idJson = jsonObject.get("id");
-                        Task task = gson.fromJson(body, Task.class);
-                        if (idJson == null) { // Передан task без id - новый
-                            if (task.getID() == 0) {
-                                task = new Task(taskManager.nextId(), task.getName(), task.getDescription(),
-                                        task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
-                            }
-                            taskManager.addBasicTask(task);
-                            writeResponse(exchange, "", 201);
-                        } else { // Передан task с id - модификация
-                            taskManager.updateBasicTask(task);
-                            writeResponse(exchange, "", 201);
-                            break;
-                        }
-                    } catch (Exception exception) {
-                        writeResponse(exchange, "Ошибка: " + exception.getMessage(), 500);
-                    }
-                } else {
-                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
-                }
-            case "DELETE":
-                if (pathParts.length == 3) {
-                    try {
-                        // DELETE /tasks/{id}
-                        Optional<Integer> maybeId = getIdFromPath(path);
-                        if (maybeId.isEmpty()) {
-                            // В ТЗ не сказано обрабатывать такую ситуацию
-                            writeResponse(exchange, "Некорректный id задачи", 404);
-                        } else {
-                            taskManager.removeBasicTaskById(maybeId.get());
-                            writeResponse(exchange, "", 200);
-                        }
-                    } catch (Exception exception) {
-                        writeResponse(exchange, "Ошибка: " + exception.getMessage(), 500);
-                    }
-                } else {
-                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
-                }
+            case GET:
+                handleGetRequest(exchange, path);
+                break;
+            case POST:
+                handlePostRequest(exchange, path);
+                break;
+            case DELETE:
+                handleDeleteRequest(exchange, path);
                 break;
             default:
-                writeResponse(exchange, "Такого эндпоинта не существует", 404);
+                writeResponse(exchange, "Метод не поддерживается", 405);
+        }
+    }
+
+    // Обработка GET-запросов
+    private void handleGetRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 2) { // GET /tasks
+            try {
+                String tasksJson = gson.toJson(taskManager.getAllBasicTasks());
+
+                writeResponse(exchange, tasksJson, 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при получении задач: " + exception.getMessage(),
+                        500);
+            }
+        } else if (pathParts.length == 3) { // GET /tasks/{id}
+            try {
+                Optional<Integer> maybeId = getIdFromPath(path);
+                if (maybeId.isEmpty()) {
+                    writeResponse(exchange, "Некорректный id задачи", 400);
+                    return;
+                }
+
+                Optional<Task> maybeTask = taskManager.getBasicTaskById(maybeId.get());
+                if (maybeTask.isEmpty()) {
+                    writeResponse(exchange, "Задача с id = " + maybeId.get() + " не найдена",
+                            404);
+                    return;
+                }
+
+                Task task = maybeTask.get();
+                String taskJson = gson.toJson(task);
+
+                writeResponse(exchange, taskJson, 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при получении задачи: " + exception.getMessage(),
+                        500);
+            }
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+        }
+    }
+
+    // Обработка POST-запросов
+    private void handlePostRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 2) { // POST /tasks
+            try {
+                String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                JsonElement jsonElement = JsonParser.parseString(body);
+
+                if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
+                    writeResponse(exchange, "Некорректный формат задачи", 400);
+                    return;
+                }
+
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                // Парсим задачу
+                Task task = gson.fromJson(body, Task.class);
+                // Проверяем, был ли передан id задачи
+                JsonElement idJson = jsonObject.get("id");
+                if (idJson == null) { // Передан task без id - создаём новую задачу в трекере
+                    task = new Task(taskManager.nextId(), task.getName(), task.getDescription(),
+                            task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
+                    taskManager.addBasicTask(task);
+                    writeResponse(exchange, "", 201);
+                } else { // Передан task с id - обновляем существующую задачу
+                    taskManager.updateBasicTask(task);
+                    writeResponse(exchange, "", 201);
+                }
+            } catch (TaskOverlapException taskOverlapException) {
+                writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
+                        + taskOverlapException.getMessage(), 400);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
+                        + exception.getMessage(), 500);
+            }
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+        }
+    }
+
+    // Обработка DELETE-запросов
+    private void handleDeleteRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 3) { // DELETE /tasks/{id}
+            try {
+                Optional<Integer> maybeId = getIdFromPath(path);
+                if (maybeId.isEmpty()) {
+                    writeResponse(exchange, "Некорректный id задачи", 400);
+                    return;
+                }
+
+                taskManager.removeBasicTaskById(maybeId.get());
+                writeResponse(exchange, "", 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при удалении задачи: " + exception.getMessage(),
+                        500);
+            }
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
         }
     }
 }
