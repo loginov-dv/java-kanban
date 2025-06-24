@@ -29,6 +29,7 @@ public class BaseHttpHandler {
     protected void writeResponse(HttpExchange exchange, String responseString,
                                int responseCode) throws IOException {
         try (OutputStream os = exchange.getResponseBody()) {
+            exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
             exchange.sendResponseHeaders(responseCode, 0);
             os.write(responseString.getBytes(DEFAULT_CHARSET));
         }
@@ -54,8 +55,7 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     @Override
-    public void write(final JsonWriter jsonWriter,
-                      final LocalDateTime localDateTime) throws IOException {
+    public void write(final JsonWriter jsonWriter, final LocalDateTime localDateTime) throws IOException {
         jsonWriter.value(localDateTime.format(dtf));
     }
 
