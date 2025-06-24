@@ -14,9 +14,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+// Базовый класс для всех обработчиков
 public class BaseHttpHandler {
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
+    // Получить id задачи из пути
     protected Optional<Integer> getIdFromPath(String path) {
         String[] pathParts = path.split("/");
         try {
@@ -26,8 +28,9 @@ public class BaseHttpHandler {
         }
     }
 
-    protected void writeResponse(HttpExchange exchange, String responseString,
-                               int responseCode) throws IOException {
+    // Отправить ответ с указанной строкой в теле и с указанным кодом
+    protected void writeResponse(HttpExchange exchange,
+                                 String responseString, int responseCode) throws IOException {
         try (OutputStream os = exchange.getResponseBody()) {
             exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
             exchange.sendResponseHeaders(responseCode, 0);
