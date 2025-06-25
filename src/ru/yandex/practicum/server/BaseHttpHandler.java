@@ -67,7 +67,11 @@ public abstract class BaseHttpHandler {
 class DurationAdapter extends TypeAdapter<Duration> {
     @Override
     public void write(final JsonWriter jsonWriter, final Duration duration) throws IOException {
-        jsonWriter.value(duration.toMinutes());
+        if (duration == null) {
+            jsonWriter.nullValue();
+        } else {
+            jsonWriter.value(duration.toMinutes());
+        }
     }
 
     @Override
@@ -83,7 +87,7 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     @Override
     public void write(final JsonWriter jsonWriter, final LocalDateTime localDateTime) throws IOException {
         if (localDateTime == null) {
-            jsonWriter.value("");
+            jsonWriter.nullValue();
         } else {
             jsonWriter.value(localDateTime.format(dtf));
         }
@@ -99,7 +103,11 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
 class TaskStatusAdapter extends TypeAdapter<TaskStatus> {
     @Override
     public void write(final JsonWriter jsonWriter, final TaskStatus taskStatus) throws IOException {
-        jsonWriter.value(taskStatus.name());
+        if (taskStatus == null) {
+            jsonWriter.nullValue();
+        } else {
+            jsonWriter.value(taskStatus.name());
+        }
     }
 
     @Override
