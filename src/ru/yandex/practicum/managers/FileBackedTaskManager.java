@@ -67,11 +67,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 } else {
                     manager.addBasicTask(parsedTask);
                 }
-
-                // Изменяем globalID в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
-                if (parsedTask.getID() > manager.globalID) {
-                    manager.globalID = parsedTask.getID();
-                }
             }
         } catch (IOException | IllegalArgumentException | IndexOutOfBoundsException exception) {
             throw new ManagerLoadException("Ошибка при чтении файла. " + exception.getMessage(), exception);

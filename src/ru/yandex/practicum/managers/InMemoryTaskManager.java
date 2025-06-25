@@ -156,6 +156,11 @@ public class InMemoryTaskManager implements TaskManager {
             // Если параметр не задан, то добавляем задачу только в мапу
             basicTasks.put(task.getID(), task);
         }
+
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (task.getID() > globalID) {
+            globalID = task.getID();
+        }
     }
 
     // Добавление новой подзадачи
@@ -179,6 +184,11 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             // Если параметр не задан, то добавляем подзадачу только в мапу
             subtasks.put(subtask.getID(), subtask);
+        }
+
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (subtask.getID() > globalID) {
+            globalID = subtask.getID();
         }
 
         // Обновляем эпик, к которому относится подзадача
@@ -215,6 +225,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addEpic(Epic epic) {
         epics.put(epic.getID(), epic);
+
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (epic.getID() > globalID) {
+            globalID = epic.getID();
+        }
     }
 
     // Обновление задачи (обычной)
