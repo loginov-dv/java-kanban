@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 import ru.yandex.practicum.exceptions.TaskOverlapException;
@@ -111,6 +112,9 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             } catch (TaskOverlapException taskOverlapException) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
                         + taskOverlapException.getMessage(), 406);
+            } catch (DateTimeParseException dateTimeParseException) {
+                writeResponse(exchange, "Некорректный формат даты. Требуемый формат - dd.MM.yyyy HH:mm:ss",
+                        400);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
                         + exception.getMessage(), 500);
