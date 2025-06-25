@@ -1,0 +1,170 @@
+package ru.yandex.practicum.server;
+
+import com.google.gson.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import ru.yandex.practicum.exceptions.TaskOverlapException;
+import ru.yandex.practicum.managers.TaskManager;
+import ru.yandex.practicum.tasks.Epic;
+import ru.yandex.practicum.tasks.Task;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
+    // Экземпляр класса, реализующего TaskManager
+    private final TaskManager taskManager;
+
+    // Конструктор класса TasksHandler
+    public EpicsHandler(TaskManager taskManager) {
+        this.taskManager = taskManager;
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String method = exchange.getRequestMethod();
+        String path = exchange.getRequestURI().getPath();
+
+        switch (method) {
+            case GET:
+                handleGetRequest(exchange, path);
+                break;
+            case POST:
+                handlePostRequest(exchange, path);
+                break;
+            case DELETE:
+                handleDeleteRequest(exchange, path);
+                break;
+            default:
+                writeResponse(exchange, "Метод не поддерживается", 405);
+        }
+    }
+
+    // Обработка GET-запросов
+    private void handleGetRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 2) { // GET /epics
+            try {
+                String epicsJson = gson.toJson(taskManager.getAllEpics());
+
+                writeResponse(exchange, epicsJson, 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при получении эпиков: " + exception.getMessage(),
+                        500);
+            }
+        } else if (pathParts.length == 3) { // GET /epics/{id}
+            try {
+                Optional<Integer> maybeId = getIdFromPath(path);
+                if (maybeId.isEmpty()) {
+                    writeResponse(exchange, "Некорректный id эпика", 400);
+                    return;
+                }
+
+                Optional<Epic> maybeEpic = taskManager.getEpicById(maybeId.get());
+                if (maybeEpic.isEmpty()) {
+                    writeResponse(exchange, "Эпик с id = " + maybeId.get() + " не найден",
+                            404);
+                    return;
+                }
+
+                String epicJson = gson.toJson(maybeEpic.get());
+
+                writeResponse(exchange, epicJson, 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при получении эпика: " + exception.getMessage(),
+                        500);
+            }
+        } else if (pathParts.length == 4) { // GET /epics/{id}/subtasks
+            Optional<Integer> maybeId = getIdFromPath(path);
+            if (maybeId.isEmpty()) {
+                writeResponse(exchange, "Некорректный id эпика", 400);
+                return;
+            }
+
+            if (!path.endsWith("subtasks")) {
+                writeResponse(exchange, "Такого эндпоинта не существует", 404);
+                return;
+            }
+
+            Optional<Epic> maybeEpic = taskManager.getEpicById(maybeId.get());
+            if (maybeEpic.isEmpty()) {
+                writeResponse(exchange, "Эпик с id = " + maybeId.get() + " не найден",
+                        404);
+                return;
+            }
+
+            String epicSubtasksJson = gson.toJson(taskManager.getAllEpicSubtasks(maybeEpic.get()));
+            writeResponse(exchange, epicSubtasksJson, 200);
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+        }
+    }
+
+    // Обработка POST-запросов
+    private void handlePostRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 2) { // POST /epics
+            try {
+                String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                JsonElement jsonElement = JsonParser.parseString(body);
+
+                if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
+                    writeResponse(exchange, "Некорректный формат эпика", 400);
+                    return;
+                }
+
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                // Парсим эпик
+                Epic epic = gson.fromJson(body, Epic.class);
+                // Проверяем, был ли передан id эпика
+                JsonElement idJson = jsonObject.get("id");
+                if (idJson == null) { // Передан epic без id - создаём новый эпик в трекере
+                    // TODO: не нужно принимать статус
+                    epic = new Epic(taskManager.nextId(), epic.getName(), epic.getDescription(),
+                            epic.getStatus());
+                    taskManager.addEpic(epic);
+                    writeResponse(exchange, "", 201);
+                } else { // Передан epic с id - по спецификации нет опции обновления эпика
+                    writeResponse(exchange, "Обновление эпика не поддерживается", 400);
+                }
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при добавлении/обновлении эпика: "
+                        + exception.getMessage(), 500);
+            }
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+        }
+    }
+
+    // Обработка DELETE-запросов
+    private void handleDeleteRequest(HttpExchange exchange, String path) throws IOException {
+        String[] pathParts = path.split("/");
+
+        if (pathParts.length == 3) { // DELETE /epics/{id}
+            try {
+                Optional<Integer> maybeId = getIdFromPath(path);
+                if (maybeId.isEmpty()) {
+                    writeResponse(exchange, "Некорректный id эпика", 400);
+                    return;
+                }
+
+                taskManager.removeEpicById(maybeId.get());
+                writeResponse(exchange, "", 200);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при удалении эпика: " + exception.getMessage(),
+                        500);
+            }
+        } else {
+            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+        }
+    }
+}
