@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import ru.yandex.practicum.managers.TaskManager;
+import ru.yandex.practicum.tasks.TaskStatus;
 
 // Базовый класс для всех обработчиков
 public abstract class BaseHttpHandler {
@@ -30,6 +31,7 @@ public abstract class BaseHttpHandler {
     protected final Gson gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new DurationAdapter())
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
             .create();
     // Экземпляр класса, реализующего TaskManager
     protected final TaskManager taskManager;
@@ -80,11 +82,34 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
 
     @Override
     public void write(final JsonWriter jsonWriter, final LocalDateTime localDateTime) throws IOException {
-        jsonWriter.value(localDateTime.format(dtf));
+        if (localDateTime == null) {
+            jsonWriter.value("");
+        } else {
+            jsonWriter.value(localDateTime.format(dtf));
+        }
     }
 
     @Override
     public LocalDateTime read(final JsonReader jsonReader) throws IOException {
         return LocalDateTime.parse(jsonReader.nextString(), dtf);
+    }
+}
+
+// TypeAdapter для преобразования TaskStatus в String
+class TaskStatusAdapter extends TypeAdapter<TaskStatus> {
+    @Override
+    public void write(final JsonWriter jsonWriter, final TaskStatus taskStatus) throws IOException {
+        jsonWriter.value(taskStatus.name());
+    }
+
+    @Override
+    public TaskStatus read(final JsonReader jsonReader) throws IOException {
+        try {
+            return TaskStatus.valueOf(jsonReader.nextString());
+        } catch (IllegalArgumentException e) {
+            // Возвращаем NEW в качестве значения по умолчанию, если была передана некорректная строка
+            // (в противном случае поле будет устанавливаться в null)
+            return TaskStatus.NEW;
+        }
     }
 }
