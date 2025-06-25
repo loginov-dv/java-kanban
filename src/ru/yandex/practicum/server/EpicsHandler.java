@@ -3,28 +3,19 @@ package ru.yandex.practicum.server;
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import ru.yandex.practicum.exceptions.TaskOverlapException;
-import ru.yandex.practicum.managers.TaskManager;
-import ru.yandex.practicum.tasks.Epic;
-import ru.yandex.practicum.tasks.Task;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
-public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
-    // Экземпляр класса, реализующего TaskManager
-    private final TaskManager taskManager;
+import ru.yandex.practicum.managers.TaskManager;
+import ru.yandex.practicum.tasks.Epic;
 
-    // Конструктор класса TasksHandler
+// Обработчик пути /epics
+public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
+    // Конструктор класса EpicsHandler
     public EpicsHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override

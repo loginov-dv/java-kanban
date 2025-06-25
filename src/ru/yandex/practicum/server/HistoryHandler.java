@@ -1,26 +1,17 @@
 package ru.yandex.practicum.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import ru.yandex.practicum.managers.TaskManager;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 
+import ru.yandex.practicum.managers.TaskManager;
+
+// Обработчик пути /history
 public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
-    // Экземпляр класса, реализующего TaskManager
-    private final TaskManager taskManager;
-
     // Конструктор класса HistoryHandler
     public HistoryHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override

@@ -6,8 +6,6 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import ru.yandex.practicum.exceptions.TaskOverlapException;
@@ -16,16 +14,9 @@ import ru.yandex.practicum.tasks.Task;
 
 // Обработчик пути /tasks
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
-    // Экземпляр класса, реализующего TaskManager
-    private final TaskManager taskManager;
-
     // Конструктор класса TasksHandler
     public TasksHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override
@@ -119,7 +110,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 }
             } catch (TaskOverlapException taskOverlapException) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
-                        + taskOverlapException.getMessage(), 400);
+                        + taskOverlapException.getMessage(), 406);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
                         + exception.getMessage(), 500);

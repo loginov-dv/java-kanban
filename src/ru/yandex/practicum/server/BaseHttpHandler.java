@@ -1,5 +1,7 @@
 package ru.yandex.practicum.server;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -14,13 +16,28 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+import ru.yandex.practicum.managers.TaskManager;
+
 // Базовый класс для всех обработчиков
-public class BaseHttpHandler {
+public abstract class BaseHttpHandler {
+    // Используемая кодировка
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     // Константы для HTTP-методов
     protected static final String GET = "GET";
     protected static final String POST = "POST";
     protected static final String DELETE = "DELETE";
+    // Экземпляр класса Gson
+    protected final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
+    // Экземпляр класса, реализующего TaskManager
+    protected final TaskManager taskManager;
+
+    // Конструктор класса BaseHttpHandler
+    protected BaseHttpHandler(TaskManager taskManager) {
+        this.taskManager = taskManager;
+    }
 
     // Получить id задачи из пути
     protected Optional<Integer> getIdFromPath(String path) {

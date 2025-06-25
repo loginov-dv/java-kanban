@@ -3,26 +3,20 @@ package ru.yandex.practicum.server;
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Subtask;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
+// Обработчик пути /subtasks
 public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
-    // Экземпляр класса, реализующего TaskManager
-    private final TaskManager taskManager;
-
+    // Конструктор класса SubtasksHandler
     public SubtasksHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override
@@ -66,15 +60,14 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                     return;
                 }
 
-                Optional<Subtask> maybeTask = taskManager.getSubtaskById(maybeId.get());
-                if (maybeTask.isEmpty()) {
+                Optional<Subtask> maybeSubtask = taskManager.getSubtaskById(maybeId.get());
+                if (maybeSubtask.isEmpty()) {
                     writeResponse(exchange, "Подзадача с id = " + maybeId.get() + " не найдена",
                             404);
                     return;
                 }
 
-                Subtask subtask = maybeTask.get();
-                String subtaskJson = gson.toJson(subtask);
+                String subtaskJson = gson.toJson(maybeSubtask.get());
 
                 writeResponse(exchange, subtaskJson, 200);
             } catch (Exception exception) {
@@ -103,7 +96,7 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                 JsonObject jsonObject = jsonElement.getAsJsonObject();
                 // Парсим подзадачу
                 Subtask subtask = gson.fromJson(body, Subtask.class);
-                // Проверяем, был ли передан id задачи
+                // Проверяем, был ли передан id подзадачи
                 JsonElement idJson = jsonObject.get("id");
                 if (idJson == null) { // Передан subtask без id - создаём новую подзадачу в трекере
                     subtask = new Subtask(taskManager.nextId(), subtask.getName(), subtask.getDescription(),
