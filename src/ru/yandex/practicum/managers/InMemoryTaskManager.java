@@ -194,6 +194,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Обновляем эпик, к которому относится подзадача
         if (subtask.getEpicID() == null) {
             return;
+            // TODO: мб исключение?
         }
 
         Epic epic = epics.get(subtask.getEpicID());
@@ -493,6 +494,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Возвращает список задач и подзадач в порядке приоритета (от более ранней даты начала к более поздней)
+    @Override
     public List<Task> getPrioritizedTasks() {
         return new ArrayList<>(prioritySet);
     }
