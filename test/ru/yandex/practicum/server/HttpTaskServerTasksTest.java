@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.gson.*;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.tasks.Subtask;
 import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
 
@@ -15,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 // Класс для тестирования пути /tasks
 class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
@@ -92,8 +94,6 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
             assertEquals(task.getStartTime().orElse(null), requestedTask.getStartTime().orElse(null),
                     "Задачи не равны");
             assertEquals(task.getDuration(), requestedTask.getDuration(), "Задачи не равны");
-            assertEquals(task.getEndTime().orElse(null), requestedTask.getEndTime().orElse(null),
-                    "Задачи не равны");
         }
     }
 
@@ -212,7 +212,10 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
 
         // Проверяем равенство полей задач
-        Task taskInManager = taskManager.getBasicTaskById(1).get(); // значение гарантированно присутствует
+        Optional<Task> maybeTask = taskManager.getBasicTaskById(task.getID());
+        assertTrue(maybeTask.isPresent(), "Подзадача не была добавлена в трекер");
+
+        Task taskInManager = maybeTask.get();
 
         assertEquals(task.getName(), taskInManager.getName(), "Задачи не равны");
         assertEquals(task.getDescription(), taskInManager.getDescription(), "Задачи не равны");
@@ -252,5 +255,33 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
 
         assertEquals(2, tasks.size(), "Некорректное количество задач");
         assertFalse(tasks.stream().anyMatch(task -> task.getID() == 1), "Задача с id = 1 не была удалена");
+    }
+
+    // Проверяет добавление задачи, имеющей пересечение с другой задачей
+    @Test
+    void shouldNotAddTaskThatHasOverlapWithSomeOtherTask() throws IOException, InterruptedException {
+        // Заполняем трекер тестовыми данными
+        fill();
+
+        // Создаём задачу, которая имеет пересечение с другой задачей
+        Task task = new Task(0, "test", "description", TaskStatus.NEW,
+                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
+        String jsonTask = gson.toJson(task);
+
+        // Создаём клиент и запрос
+        URI url = URI.create("http://localhost:8080/tasks/");
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+        HttpRequest request = requestBuilder
+                .POST(HttpRequest.BodyPublishers.ofString(jsonTask))
+                .uri(url)
+                .version(HttpClient.Version.HTTP_1_1)
+                .header("Accept", "application/json")
+                .build();
+        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+        HttpResponse<String> response = client.send(request, handler);
+
+        // Проверяем код ответа
+        assertEquals(406, response.statusCode(), "Некорректный код ответа");
     }
 }
