@@ -99,7 +99,7 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                 Subtask subtask = gson.fromJson(body, Subtask.class);
                 // Проверяем, был ли передан id подзадачи
                 JsonElement idJson = jsonObject.get("id");
-                if (idJson == null) { // Передан subtask без id - создаём новую подзадачу в трекере
+                if (idJson == null || subtask.getID() <= 0) { // Передан subtask без id - создаём новую подзадачу в трекере
                     subtask = new Subtask(taskManager.nextId(), subtask.getName(), subtask.getDescription(),
                             subtask.getStatus(), subtask.getEpicID(),
                             subtask.getStartTime().orElse(null), subtask.getDuration());
