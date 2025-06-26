@@ -236,7 +236,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fill();
 
-        // Удалим подзадачу с id = 111
+        // Удалим подзадачу с id = 11
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/subtasks/" + 11);
         HttpClient client = HttpClient.newHttpClient();
@@ -257,11 +257,11 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
         List<Subtask> subtasks = taskManager.getAllSubtasks();
 
         assertEquals(1, subtasks.size(), "Некорректное количество подзадач");
-        assertFalse(subtasks.stream().anyMatch(subtask -> subtask.getID() == 1),
-                "Подзадача с id = 1 не была удалена");
+        assertFalse(subtasks.stream().anyMatch(subtask -> subtask.getID() == 11),
+                "Подзадача с id = 11 не была удалена");
     }
 
-    // Проверяет добавление подзадачи, имеющей пересечение с другой задачей
+    // Проверяет добавление подзадачи, имеющей пересечение с другой задачей (POST /subtasks)
     @Test
     void shouldNotAddSubtaskThatHasOverlapWithSomeOtherTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
