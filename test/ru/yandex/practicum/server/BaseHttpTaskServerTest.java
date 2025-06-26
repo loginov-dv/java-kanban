@@ -2,6 +2,7 @@ package ru.yandex.practicum.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,5 +77,10 @@ public class BaseHttpTaskServerTest {
 
 // Вспомогательный класс для десериализации списков задач
 class TaskListTypeToken extends TypeToken<List<Task>> {
+
+}
+
+// Вспомогательный класс для десериализации списков подзадач
+class SubtaskListTypeToken extends TypeToken<List<Subtask>> {
 
 }
