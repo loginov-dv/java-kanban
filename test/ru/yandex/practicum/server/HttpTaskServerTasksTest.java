@@ -257,7 +257,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         assertFalse(tasks.stream().anyMatch(task -> task.getID() == 1), "Задача с id = 1 не была удалена");
     }
 
-    // Проверяет добавление задачи, имеющей пересечение с другой задачей
+    // Проверяет добавление задачи, имеющей пересечение с другой задачей (POST /tasks)
     @Test
     void shouldNotAddTaskThatHasOverlapWithSomeOtherTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
