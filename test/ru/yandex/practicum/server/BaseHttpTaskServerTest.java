@@ -84,3 +84,8 @@ class TaskListTypeToken extends TypeToken<List<Task>> {
 class SubtaskListTypeToken extends TypeToken<List<Subtask>> {
 
 }
+
+// Вспомогательный класс для десериализации списков эпиков
+class EpicListTypeToken extends TypeToken<List<Epic>> {
+
+}
