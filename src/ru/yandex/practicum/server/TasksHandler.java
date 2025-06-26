@@ -100,7 +100,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 Task task = gson.fromJson(body, Task.class);
                 // Проверяем, был ли передан id задачи
                 JsonElement idJson = jsonObject.get("id");
-                if (idJson == null) { // Передан task без id - создаём новую задачу в трекере
+                if (idJson == null || task.getID() <= 0) { // Передан task без id - создаём новую задачу в трекере
                     task = new Task(taskManager.nextId(), task.getName(), task.getDescription(),
                             task.getStatus(), task.getStartTime().orElse(null), task.getDuration());
                     taskManager.addBasicTask(task);
