@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
+import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Epic;
 
@@ -59,41 +61,39 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                     return;
                 }
 
-                Optional<Epic> maybeEpic = taskManager.getEpicById(maybeId.get());
-                if (maybeEpic.isEmpty()) {
-                    writeResponse(exchange, "Эпик с id = " + maybeId.get() + " не найден",
-                            404);
-                    return;
-                }
-
-                String epicJson = gson.toJson(maybeEpic.get());
+                Epic epic = taskManager.getEpicById(maybeId.get());
+                String epicJson = gson.toJson(epic);
 
                 writeResponse(exchange, epicJson, 200);
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при получении эпика: " + exception.getMessage(),
                         500);
             }
         } else if (pathParts.length == 4) { // GET /epics/{id}/subtasks
-            Optional<Integer> maybeId = getIdFromPath(path);
-            if (maybeId.isEmpty()) {
-                writeResponse(exchange, "Некорректный id эпика", 400);
-                return;
-            }
+            try {
+                Optional<Integer> maybeId = getIdFromPath(path);
+                if (maybeId.isEmpty()) {
+                    writeResponse(exchange, "Некорректный id эпика", 400);
+                    return;
+                }
 
-            if (!path.endsWith("subtasks")) {
-                writeResponse(exchange, "Такого эндпоинта не существует", 404);
-                return;
-            }
+                if (!path.endsWith("subtasks")) {
+                    writeResponse(exchange, "Такого эндпоинта не существует", 404);
+                    return;
+                }
 
-            Optional<Epic> maybeEpic = taskManager.getEpicById(maybeId.get());
-            if (maybeEpic.isEmpty()) {
-                writeResponse(exchange, "Эпик с id = " + maybeId.get() + " не найден",
-                        404);
-                return;
-            }
+                Epic epic = taskManager.getEpicById(maybeId.get());
+                String epicSubtasksJson = gson.toJson(taskManager.getAllEpicSubtasks(epic));
 
-            String epicSubtasksJson = gson.toJson(taskManager.getAllEpicSubtasks(maybeEpic.get()));
-            writeResponse(exchange, epicSubtasksJson, 200);
+                writeResponse(exchange, epicSubtasksJson, 200);
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
+            } catch (Exception exception) {
+                writeResponse(exchange, "Ошибка при получении эпика: " + exception.getMessage(),
+                        500);
+            }
         } else {
             writeResponse(exchange, "Такого эндпоинта не существует", 404);
         }

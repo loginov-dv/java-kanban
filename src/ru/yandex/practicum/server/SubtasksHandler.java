@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Subtask;
@@ -61,16 +62,12 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                     return;
                 }
 
-                Optional<Subtask> maybeSubtask = taskManager.getSubtaskById(maybeId.get());
-                if (maybeSubtask.isEmpty()) {
-                    writeResponse(exchange, "Подзадача с id = " + maybeId.get() + " не найдена",
-                            404);
-                    return;
-                }
-
-                String subtaskJson = gson.toJson(maybeSubtask.get());
+                Subtask subtask = taskManager.getSubtaskById(maybeId.get());
+                String subtaskJson = gson.toJson(subtask);
 
                 writeResponse(exchange, subtaskJson, 200);
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при получении подзадачи: " + exception.getMessage(),
                         500);
