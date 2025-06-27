@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.tasks.Epic;
+import ru.yandex.practicum.tasks.Subtask;
 import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
 
@@ -188,7 +189,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         fill();
 
         // У эпика с id = 10 изменим имя
-        Epic epic = taskManager.getEpicById(10).get(); // значение гарантированно присутствует
+        Epic epic = taskManager.getEpicById(10);
         epic = new Epic(epic.getID(), "new name", epic.getDescription(), epic.getStatus(), epic.getSubtaskIDs(),
                 epic.getStartTime().get(), epic.getDuration(), epic.getEndTime().get()); // гарантированно присутствует
         String jsonEpic = gson.toJson(epic);
@@ -238,5 +239,42 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
 
         assertEquals(1, epics.size(), "Некорректное количество эпиков");
         assertFalse(epics.stream().anyMatch(epic -> epic.getID() == 10), "Эпик с id = 10 не был удалён");
+    }
+
+    // Проверяет получение подзадач эпика (GET /epics/{id}/subtasks)
+    @Test
+    void shouldReturnEpicSubtasks() throws IOException, InterruptedException {
+        // Заполняем трекер тестовыми данными
+        fill();
+
+        // Запросим подзадачи эпика с id = 10
+        Epic epic = taskManager.getEpicById(10);
+        // Создаём клиент и запрос
+        URI url = URI.create("http://localhost:8080/epics/" + epic.getID() + "/subtasks");
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+        HttpRequest request = requestBuilder
+                .GET()
+                .uri(url)
+                .version(HttpClient.Version.HTTP_1_1)
+                .header("Accept", "application/json")
+                .build();
+        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+        HttpResponse<String> response = client.send(request, handler);
+
+        // Проверяем код ответа
+        assertEquals(200, response.statusCode(), "Некорректный код ответа");
+
+        // Получаем и парсим тело ответа
+        JsonElement jsonElement = JsonParser.parseString(response.body());
+        // Проверяем, что сервер вернул json-массив
+        assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
+
+        // Получаем подзадачи и десериализуем в список
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+        List<Subtask> subtasks = gson.fromJson(jsonArray, new SubtaskListTypeToken().getType());
+
+        // Проверяем равенство коллекций
+        assertIterableEquals(taskManager.getAllEpicSubtasks(epic), subtasks, "Списки подзадач эпика не равны");
     }
 }

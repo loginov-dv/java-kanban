@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.tasks.Epic;
 import ru.yandex.practicum.tasks.Subtask;
@@ -70,8 +71,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addBasicTask(task);
 
         // Проверяем получение задачи (обычной) по id
-        Optional<Task> foundTask = taskManager.getBasicTaskById(task.getID());
-        assertFalse(foundTask.isEmpty(), "В трекере не найдена добавленная задача");
+        try {
+            taskManager.getBasicTaskById(task.getID());
+        } catch (TaskNotFoundException exception) {
+            fail("В трекере не найдена добавленная задача");
+        }
     }
 
     // Проверяет поиск эпика по id в трекере
@@ -82,8 +86,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addEpic(epic);
 
         // Проверяем получение эпика по id
-        Optional<Epic> foundEpic = taskManager.getEpicById(epic.getID());
-        assertFalse(foundEpic.isEmpty(), "В трекере не найден добавленный эпик");
+        try {
+            taskManager.getEpicById(epic.getID());
+        } catch (TaskNotFoundException exception) {
+            fail("В трекере не найден добавленный эпик");
+        }
     }
 
     // Проверяет поиск подзадачи по id в трекере
@@ -95,26 +102,32 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask);
 
         // Проверяем получение подзадачи по id
-        Optional<Subtask> foundSubtask = taskManager.getSubtaskById(subtask.getID());
-        assertFalse(foundSubtask.isEmpty(), "В трекере не найдена добавленная подзадача");
+        try {
+            taskManager.getSubtaskById(subtask.getID());
+        } catch (TaskNotFoundException exception) {
+            fail("В трекере не найдена добавленная подзадача");
+        }
     }
 
     // Проверяет попытку получения задачи, которой нет в трекере
     @Test
     void shouldNotFindTaskThatDoesntExist() {
-        assertTrue(taskManager.getBasicTaskById(1000).isEmpty(), "В трекере найдена несуществующая задача");
+        assertThrows(TaskNotFoundException.class, () -> taskManager.getBasicTaskById(1000),
+                "В трекере найдена несуществующая задача");
     }
 
     // Проверяет попытку получения эпика, которого нет в трекере
     @Test
     void shouldNotFindEpicThatDoesntExist() {
-        assertTrue(taskManager.getEpicById(1000).isEmpty(), "В трекере найден несуществующий эпик");
+        assertThrows(TaskNotFoundException.class, () -> taskManager.getEpicById(1000),
+                "В трекере найден несуществующий эпик");
     }
 
     // Проверяет попытку получения подзадачи, которой нет в трекере
     @Test
     void shouldNotFindSubtaskThatDoesntExist() {
-        assertTrue(taskManager.getSubtaskById(1000).isEmpty(), "В трекере найдена несуществующая подзадача");
+        assertThrows(TaskNotFoundException.class, () -> taskManager.getSubtaskById(1000),
+                "В трекере найдена несуществующая подзадача");
     }
 
     // Проверяет обновление задачи в трекере
@@ -131,7 +144,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateBasicTask(updatedTask);
 
         // Проверяем изменение полей задачи
-        task = taskManager.getBasicTaskById(task.getID()).get();
+        task = taskManager.getBasicTaskById(task.getID());
         assertEquals(updatedTask.getName(), task.getName(),
                 "Не было обновлено имя задачи");
         assertEquals(updatedTask.getDescription(), task.getDescription(),
@@ -175,7 +188,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask11);
 
         // Получим эпик из трекера, ожидая, что он должен обновиться
-        Epic updatedEpic = taskManager.getEpicById(epic1.getID()).get();
+        Epic updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(1, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
         assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
@@ -188,7 +201,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask12);
 
         // Получим эпик из трекера, ожидая, что он должен обновиться
-        updatedEpic = taskManager.getEpicById(epic1.getID()).get();
+        updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(2, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
         assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
@@ -209,7 +222,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask11);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
-        Epic updatedEpic = taskManager.getEpicById(epic1.getID()).get();
+        Epic updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(1, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
         assertEquals(TaskStatus.IN_PROGRESS, updatedEpic.getStatus(),
@@ -220,7 +233,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
         // (кол-во элементов в списке подзадач = 0 и статус = NEW)
-        updatedEpic = taskManager.getEpicById(epic1.getID()).get();
+        updatedEpic = taskManager.getEpicById(epic1.getID());
         assertEquals(0, updatedEpic.getSubtaskIDs().size(),
                 "id подзадачи не был удалён из списка подзадач эпика");
         assertEquals(TaskStatus.NEW, updatedEpic.getStatus(),
@@ -243,12 +256,12 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(sub2);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertArrayEquals(epic.getSubtaskIDs().toArray(), List.of(sub1.getID(), sub2.getID()).toArray(),
                 "id подзадач не были добавлены в список подзадач эпика");
 
         // Дополнительно проверяем, что у подзадач (одной из) заполнено поле с id эпика
-        sub2 = taskManager.getSubtaskById(sub2.getID()).get();
+        sub2 = taskManager.getSubtaskById(sub2.getID());
         assertEquals(epic.getID(), sub2.getEpicID(), "id эпика не был добавлен в подзадачу");
 
         // Обновляем статус первой подзадачи (NEW -> IN_PROGRESS)
@@ -257,7 +270,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 sub1.getStartTime().get(), sub1.getDuration()));
 
         // Статус эпика должен измениться на IN_PROGRESS
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
 
         // Обновляем статус первой подзадачи (IN_PROGRESS -> DONE)
@@ -266,7 +279,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 sub1.getStartTime().get(), sub1.getDuration()));
 
         // Статус эпика должен остаться IN_PROGRESS
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
 
         // Обновляем статус второй подзадачи (NEW -> IN_PROGRESS)
@@ -275,7 +288,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 sub2.getStartTime().get(), sub2.getDuration()));
 
         // Статус эпика должен остаться IN_PROGRESS
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(), "Некорректное обновление статуса у эпика");
 
         // Обновляем статус второй подзадачи (IN_PROGRESS -> DONE)
@@ -284,7 +297,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 sub2.getStartTime().get(), sub2.getDuration()));
 
         // Статус эпика должен измениться на DONE
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(TaskStatus.DONE, epic.getStatus(), "Некорректное обновление статуса у эпика");
     }
 
@@ -342,10 +355,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask21);
 
         // Получаем эпики из трекера, ожидая, что они должны обновиться
-        epic1 = taskManager.getEpicById(epic1.getID()).get();
+        epic1 = taskManager.getEpicById(epic1.getID());
         assertEquals(1, epic1.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
-        epic2 = taskManager.getEpicById(epic2.getID()).get();
+        epic2 = taskManager.getEpicById(epic2.getID());
         assertEquals(1, epic2.getSubtaskIDs().size(),
                 "id подзадачи не был добавлен в список подзадач эпика");
 
@@ -353,12 +366,12 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeAllSubtasks();
 
         // Получаем эпики из трекера, ожидая, что они должны обновиться
-        epic1 = taskManager.getEpicById(epic1.getID()).get();
+        epic1 = taskManager.getEpicById(epic1.getID());
         assertEquals(0, epic1.getSubtaskIDs().size(),
                 "id подзадачи не был удалён из списка подзадач эпика");
         assertEquals(TaskStatus.NEW, epic1.getStatus(),
                 "status эпика не был обновлён при удалении всех его подзадач");
-        epic2 = taskManager.getEpicById(epic2.getID()).get();
+        epic2 = taskManager.getEpicById(epic2.getID());
         assertEquals(0, epic2.getSubtaskIDs().size(),
                 "id подзадачи не был удалён из списка подзадач эпика");
         assertEquals(TaskStatus.NEW, epic2.getStatus(),
@@ -404,7 +417,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 "Методы получения задач по id не вызывались, но история просмотра содержит задачи");
 
         // Запрашиваем задачу по id
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
 
         // Проверяем добавление задачи в историю
         assertEquals(1, taskManager.getHistory().size(), "Задача не была добавлена в историю");
@@ -450,11 +463,13 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(0, taskManager.getHistory().size(), "История была не пуста");
 
         // Пытаемся получить задачу, которой нету в трекере (менеджер в этом тесте в принципе не содержит задач)
-        taskManager.getBasicTaskById(999);
-
-        // Проверяем, что история по-прежнему пуста
-        assertEquals(0, taskManager.getHistory().size(),
-                "Некорректное добавление задач в историю просмотра");
+        try {
+            taskManager.getBasicTaskById(999);
+        } catch (TaskNotFoundException exception) {
+            // Проверяем, что история по-прежнему пуста
+            assertEquals(0, taskManager.getHistory().size(),
+                    "Некорректное добавление задач в историю просмотра");
+        }
     }
 
     // Проверяет, что изменение запрошенного списка истории задач не влияет на историю в трекере
@@ -789,7 +804,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         // Получаем эпик из трекера, ожидая, что он должен обновиться
         // Т.к. подзадача одна, то дата и время начала эпика, а также его продолжительность,
         // равны соответствующим характеристикам его единственной подзадачи
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration(), epic.getDuration(),
@@ -806,7 +821,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         // Дата и время начала равны дате и времени начала первой подзадачи
         // Продолжительность равна сумме продолжительностей обеих подзадач
         // Дата и время окончания равны дате и времени окончания второй подзадачи (т.к. она позднее)
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration().plus(sub2.getDuration()), epic.getDuration(),
@@ -821,7 +836,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(sub3);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration().plus(sub2.getDuration()).plus(sub3.getDuration()), epic.getDuration(),
@@ -844,7 +859,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask);
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
-        Epic updatedEpic = taskManager.getEpicById(epic.getID()).get();
+        Epic updatedEpic = taskManager.getEpicById(epic.getID());
         assertEquals(subtask.getStartTime(), updatedEpic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(subtask.getDuration(), updatedEpic.getDuration(),
@@ -857,7 +872,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         // Получаем эпик из трекера, ожидая, что он должен обновиться
         // (startTime = null, duration = ZERO)
-        updatedEpic = taskManager.getEpicById(epic.getID()).get();
+        updatedEpic = taskManager.getEpicById(epic.getID());
         assertEquals(Optional.empty(), updatedEpic.getStartTime(), "Некорректное определение даты и времени начала эпика");
         assertEquals(Duration.ZERO, updatedEpic.getDuration(),
                 "Некорректное определение продолжительности эпика");
@@ -883,7 +898,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         // Дата и время начала равны дате и времени начала первой подзадачи
         // Продолжительность равна сумме продолжительностей обеих подзадач
         // Дата и время окончания равны дате и времени окончания второй подзадачи (т.к. она позднее)
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration().plus(sub2.getDuration()), epic.getDuration(),
@@ -898,7 +913,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateSubtask(sub1);
 
         // Проверяем изменение временных параметров эпика
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration().plus(sub2.getDuration()), epic.getDuration(),
@@ -914,7 +929,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateSubtask(sub1);
 
         // Проверяем изменение временных параметров эпика
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
         assertEquals(sub1.getStartTime(), epic.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(sub1.getDuration().plus(sub2.getDuration()), epic.getDuration(),
@@ -943,14 +958,14 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask21);
 
         // Получаем эпики из трекера, ожидая, что они должны обновиться
-        epic1 = taskManager.getEpicById(epic1.getID()).get();
+        epic1 = taskManager.getEpicById(epic1.getID());
         assertEquals(subtask11.getStartTime(), epic1.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(subtask11.getDuration(), epic1.getDuration(),
                 "Некорректное определение продолжительности эпика");
         assertEquals(subtask11.getEndTime(), epic1.getEndTime(),
                 "Некорректное определение даты окончания эпика");
-        epic2 = taskManager.getEpicById(epic2.getID()).get();
+        epic2 = taskManager.getEpicById(epic2.getID());
         assertEquals(subtask21.getStartTime(), epic2.getStartTime(),
                 "Некорректное определение даты и времени начала эпика");
         assertEquals(subtask21.getDuration(), epic2.getDuration(),
@@ -962,12 +977,12 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeAllSubtasks();
 
         // Получаем эпики из трекера, ожидая, что они должны обновиться
-        epic1 = taskManager.getEpicById(epic1.getID()).get();
+        epic1 = taskManager.getEpicById(epic1.getID());
         assertEquals(Optional.empty(), epic1.getStartTime(), "Некорректное определение даты и времени начала эпика");
         assertEquals(Duration.ZERO, epic1.getDuration(),
                 "Некорректное определение продолжительности эпика");
         assertEquals(Optional.empty(), epic1.getEndTime(), "Некорректное определение даты окончания эпика");
-        epic2 = taskManager.getEpicById(epic2.getID()).get();
+        epic2 = taskManager.getEpicById(epic2.getID());
         assertEquals(Optional.empty(), epic2.getStartTime(), "Некорректное определение даты и времени начала эпика");
         assertEquals(Duration.ZERO, epic2.getDuration(),
                 "Некорректное определение продолжительности эпика");

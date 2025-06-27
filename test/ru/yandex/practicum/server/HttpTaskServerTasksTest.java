@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.gson.*;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.tasks.Subtask;
 import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
@@ -190,7 +191,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         fill();
 
         // У задачи с id = 1 изменим имя, статус и дату начала
-        Task task = taskManager.getBasicTaskById(1).get(); // значение гарантированно присутствует
+        Task task = taskManager.getBasicTaskById(1);
         task = new Task(task.getID(), "new name", task.getDescription(), TaskStatus.IN_PROGRESS,
                 LocalDateTime.now(), task.getDuration());
         String jsonTask = gson.toJson(task);
@@ -212,10 +213,12 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
 
         // Проверяем равенство полей задач
-        Optional<Task> maybeTask = taskManager.getBasicTaskById(task.getID());
-        assertTrue(maybeTask.isPresent(), "Подзадача не была добавлена в трекер");
-
-        Task taskInManager = maybeTask.get();
+        Task taskInManager = null;
+        try {
+            taskInManager = taskManager.getBasicTaskById(task.getID());
+        } catch (TaskNotFoundException exception) {
+            fail("Задача не была добавлена в трекер");
+        }
 
         assertEquals(task.getName(), taskInManager.getName(), "Задачи не равны");
         assertEquals(task.getDescription(), taskInManager.getDescription(), "Задачи не равны");

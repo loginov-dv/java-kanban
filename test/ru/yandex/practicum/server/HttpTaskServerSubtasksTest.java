@@ -4,7 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.tasks.Subtask;
+import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
 
 import java.io.IOException;
@@ -193,7 +195,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
         fill();
 
         // У подзадачи с id = 11 изменим имя, статус и дату начала
-        Subtask subtask = taskManager.getSubtaskById(11).get(); // значение гарантированно присутствует
+        Subtask subtask = taskManager.getSubtaskById(11);
         subtask = new Subtask(subtask.getID(), "new name", subtask.getDescription(), TaskStatus.NEW,
                 subtask.getEpicID(), LocalDateTime.now(), subtask.getDuration());
         String jsonSubtask = gson.toJson(subtask);
@@ -215,10 +217,12 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
 
         // Проверяем равенство полей задач
-        Optional<Subtask> maybeSubtask = taskManager.getSubtaskById(subtask.getID());
-        assertTrue(maybeSubtask.isPresent(), "Подзадача не была добавлена в трекер");
-
-        Subtask subtaskFromManager = maybeSubtask.get();
+        Subtask subtaskFromManager = null;
+        try {
+            subtaskFromManager = taskManager.getSubtaskById(subtask.getID());
+        } catch (TaskNotFoundException exception) {
+            fail("Подзадача не была добавлена в трекер");
+        }
 
         assertEquals(subtask.getName(), subtaskFromManager.getName(), "Подзадачи не равны");
         assertEquals(subtask.getDescription(), subtaskFromManager.getDescription(), "Подзадачи не равны");
