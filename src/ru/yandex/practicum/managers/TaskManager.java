@@ -20,11 +20,11 @@ public interface TaskManager {
 
     void removeAllEpics();
 
-    Optional<Task> getBasicTaskById(int id);
+    Task getBasicTaskById(int id);
 
-    Optional<Subtask> getSubtaskById(int id);
+    Subtask getSubtaskById(int id);
 
-    Optional<Epic> getEpicById(int id);
+    Epic getEpicById(int id);
 
     void addBasicTask(Task task);
 

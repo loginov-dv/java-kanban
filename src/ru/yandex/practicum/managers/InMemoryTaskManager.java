@@ -1,5 +1,6 @@
 package ru.yandex.practicum.managers;
 
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.tasks.*;
 
@@ -109,29 +110,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение задачи (обычной) по id
     @Override
-    public Optional<Task> getBasicTaskById(int id) {
-        // Добавляем задачу в историю просмотра
-        addToHistory(basicTasks.get(id));
+    public Task getBasicTaskById(int id) {
+        if (basicTasks.containsKey(id)) {
+            // Добавляем задачу в историю просмотра
+            addToHistory(basicTasks.get(id));
 
-        return Optional.ofNullable(basicTasks.get(id));
+            return basicTasks.get(id);
+        }
+
+        throw new TaskNotFoundException("Задача с id = " + id + " не найдена");
     }
 
     // Получение подзадачи по id
     @Override
-    public Optional<Subtask> getSubtaskById(int id) {
-        // Добавляем подзадачу в историю просмотра
-        addToHistory(subtasks.get(id));
+    public Subtask getSubtaskById(int id) {
+        if (subtasks.containsKey(id)) {
+            // Добавляем подзадачу в историю просмотра
+            addToHistory(subtasks.get(id));
 
-        return Optional.ofNullable(subtasks.get(id));
+            return subtasks.get(id);
+        }
+
+        throw new TaskNotFoundException("Подзадача с id = " + id + " не найдена");
     }
 
     // Получение эпика по id
     @Override
-    public Optional<Epic> getEpicById(int id) {
-        // Добавляем эпик в историю просмотра
-        addToHistory(epics.get(id));
+    public Epic getEpicById(int id) {
+        if (epics.containsKey(id)) {
+            // Добавляем эпик в историю просмотра
+            addToHistory(epics.get(id));
 
-        return Optional.ofNullable(epics.get(id));
+            return epics.get(id);
+        }
+
+        throw new TaskNotFoundException("Эпик с id = " + id + " не найден");
     }
 
     // Добавление новой задачи (обычной)
