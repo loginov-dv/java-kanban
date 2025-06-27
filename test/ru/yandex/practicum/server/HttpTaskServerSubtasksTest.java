@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.tasks.Subtask;
-import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
 
 import java.io.IOException;
@@ -17,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.google.gson.*;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.exceptions.TaskNotFoundException;
-import ru.yandex.practicum.tasks.Subtask;
 import ru.yandex.practicum.tasks.Task;
 import ru.yandex.practicum.tasks.TaskStatus;
 
@@ -17,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 // Класс для тестирования пути /tasks
 class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {

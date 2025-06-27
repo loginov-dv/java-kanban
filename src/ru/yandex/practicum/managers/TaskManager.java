@@ -3,7 +3,6 @@ package ru.yandex.practicum.managers;
 import ru.yandex.practicum.tasks.*;
 
 import java.util.List;
-import java.util.Optional;
 
 // Интерфейс для предоставления функциональности трекера задач
 public interface TaskManager {
