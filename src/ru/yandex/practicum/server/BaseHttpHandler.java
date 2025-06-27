@@ -27,6 +27,8 @@ public abstract class BaseHttpHandler {
     protected static final String GET = "GET";
     protected static final String POST = "POST";
     protected static final String DELETE = "DELETE";
+    // Константа индекса поля id в пути
+    protected static final int ID_INDEX = 2;
     // Экземпляр класса Gson
     protected final Gson gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new DurationAdapter())
@@ -45,7 +47,7 @@ public abstract class BaseHttpHandler {
     protected Optional<Integer> getIdFromPath(String path) {
         String[] pathParts = path.split("/");
         try {
-            return Optional.of(Integer.parseInt(pathParts[2]));
+            return Optional.of(Integer.parseInt(pathParts[ID_INDEX]));
         } catch (NumberFormatException exception) {
             return Optional.empty();
         }
@@ -82,6 +84,7 @@ class DurationAdapter extends TypeAdapter<Duration> {
 
 // TypeAdapter для преобразования LocalDateTime в String
 class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
+    // Форматтер для LocalDateTime
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     @Override
