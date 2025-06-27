@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import ru.yandex.practicum.exceptions.TaskNotFoundException;
-import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Epic;
 
@@ -108,20 +107,18 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 JsonElement jsonElement = JsonParser.parseString(body);
 
-                if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
+                if (!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
                     writeResponse(exchange, "Некорректный формат эпика", 400);
                     return;
                 }
 
-                JsonObject jsonObject = jsonElement.getAsJsonObject();
                 // Парсим эпик
                 Epic epic = gson.fromJson(body, Epic.class);
-                // Проверяем, был ли передан id эпика
-                JsonElement idJson = jsonObject.get("id");
-                if (idJson == null || epic.getID() <= 0) { // Передан epic без id - создаём новый эпик в трекере
+                if (epic.getID() <= 0) { // Передан epic без id - создаём новый эпик в трекере
                     // TODO: не нужно принимать статус
                     epic = new Epic(taskManager.nextId(), epic.getName(), epic.getDescription(),
                             epic.getStatus());
+
                     taskManager.addEpic(epic);
                     writeResponse(exchange, "", 201);
                 } else { // Передан epic с id - по спецификации нет опции обновления эпика
