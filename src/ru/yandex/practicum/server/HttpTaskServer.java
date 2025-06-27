@@ -4,15 +4,9 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 import ru.yandex.practicum.managers.Managers;
 import ru.yandex.practicum.managers.TaskManager;
-import ru.yandex.practicum.tasks.Epic;
-import ru.yandex.practicum.tasks.Subtask;
-import ru.yandex.practicum.tasks.Task;
-import ru.yandex.practicum.tasks.TaskStatus;
 
 public class HttpTaskServer {
     // Порт
@@ -35,7 +29,9 @@ public class HttpTaskServer {
 
     // Запустить сервер
     public void start() throws IOException {
+        // Создаём сервер
         httpServer = HttpServer.create(new InetSocketAddress(PORT), 0);
+        // Регистрируем обработчики
         httpServer.createContext("/tasks", new TasksHandler(taskManager));
         httpServer.createContext("/subtasks", new SubtasksHandler(taskManager));
         httpServer.createContext("/epics", new EpicsHandler(taskManager));
