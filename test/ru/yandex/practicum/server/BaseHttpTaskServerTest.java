@@ -2,22 +2,19 @@ package ru.yandex.practicum.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import ru.yandex.practicum.managers.InMemoryTaskManager;
-import ru.yandex.practicum.managers.TaskManager;
-import ru.yandex.practicum.tasks.Epic;
-import ru.yandex.practicum.tasks.Subtask;
-import ru.yandex.practicum.tasks.Task;
-import ru.yandex.practicum.tasks.TaskStatus;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import ru.yandex.practicum.managers.InMemoryTaskManager;
+import ru.yandex.practicum.managers.TaskManager;
+import ru.yandex.practicum.tasks.*;
 
 // Базовый класс для тестов путей
 public class BaseHttpTaskServerTest {
@@ -28,11 +25,23 @@ public class BaseHttpTaskServerTest {
     // Форматтер для даты
     protected DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
     // Экземпляр класса Gson
-    protected final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
-            .create();
+    protected Gson gson;
+
+    public BaseHttpTaskServerTest() {
+        // Конфигурируем JSON десериализатор списка задач
+        TaskDeserializer deserializer = new TaskDeserializer("type");
+        deserializer.setTaskTypeRegistry(TaskType.TASK.name(), Task.class);
+        deserializer.setTaskTypeRegistry(TaskType.SUBTASK.name(), Subtask.class);
+        deserializer.setTaskTypeRegistry(TaskType.EPIC.name(), Epic.class);
+
+        // Создаём объект класса Gson, регистрируя все адаптеры
+        gson = new GsonBuilder()
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
+                .registerTypeAdapter(Task.class, deserializer)
+                .create();
+    }
 
     @BeforeEach
     void beforeEach() throws IOException {
