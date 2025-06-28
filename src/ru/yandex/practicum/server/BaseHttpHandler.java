@@ -1,23 +1,24 @@
 package ru.yandex.practicum.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import ru.yandex.practicum.managers.TaskManager;
-import ru.yandex.practicum.tasks.TaskStatus;
+import ru.yandex.practicum.tasks.*;
 
 // Базовый класс для всех обработчиков
 public abstract class BaseHttpHandler {
@@ -30,17 +31,27 @@ public abstract class BaseHttpHandler {
     // Константа индекса поля id в пути
     protected static final int ID_INDEX = 2;
     // Экземпляр класса Gson
-    protected final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
-            .create();
+    protected final Gson gson;
     // Экземпляр класса, реализующего TaskManager
     protected final TaskManager taskManager;
 
     // Конструктор класса BaseHttpHandler
     protected BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
+
+        // Конфигурируем JSON десериализатор списка задач
+        TaskDeserializer deserializer = new TaskDeserializer("type");
+        deserializer.setTaskTypeRegistry(TaskType.TASK.name(), Task.class);
+        deserializer.setTaskTypeRegistry(TaskType.SUBTASK.name(), Subtask.class);
+        deserializer.setTaskTypeRegistry(TaskType.EPIC.name(), Epic.class);
+
+        // Создаём объект класса Gson, регистрируя все адаптеры
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
+                .registerTypeAdapter(Task.class, deserializer)
+                .create();
     }
 
     // Получить id задачи из пути
@@ -122,5 +133,55 @@ class TaskStatusAdapter extends TypeAdapter<TaskStatus> {
             // (в противном случае поле будет устанавливаться в null)
             return TaskStatus.NEW;
         }
+    }
+}
+
+// Полиморфный JsonDeserializer для списка задач
+class TaskDeserializer implements JsonDeserializer<Task> {
+    // Наименование поля, определяющего тип задачи
+    private final String taskTypeElementName;
+    // Объект класса Gson со всеми адаптерами
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
+            .create();
+    // Мапа, ключом которой является наименование типа задачи, а значением - соответствующий класс
+    private final Map<String, Class<? extends Task>> taskTypeRegistry;
+
+    // Конструктор класса TaskDeserializer
+    public TaskDeserializer(String taskTypeElementName) {
+        this.taskTypeElementName = taskTypeElementName;
+        this.taskTypeRegistry = new HashMap<>();
+    }
+
+    // Добавляет в мапу новую запись
+    public void setTaskTypeRegistry(String taskTypeName, Class<? extends Task> taskType) {
+        taskTypeRegistry.put(taskTypeName, taskType);
+    }
+
+    // Десериализует задачу в зависимости от значения поля type
+    @Override
+    public Task deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) {
+        JsonObject taskObject = jsonElement.getAsJsonObject();
+        JsonElement taskTypeElement = taskObject.get(taskTypeElementName);
+
+        // Если поле type отсутствует, считаем, что это базовый Task
+        // В противном случае при десериализации обычных Task и при отсутствии у них type
+        // (например, если в POST запросе от пользователя пришла задача без указания type)
+        // метод упадёт с NullPointerException
+        if (taskTypeElement == null) {
+            return gson.fromJson(taskObject, Task.class);
+        }
+
+        // Иначе ищем зарегистрированный тип
+        String taskTypeName = taskTypeElement.getAsString();
+        Class<? extends Task> taskType = taskTypeRegistry.get(taskTypeName);
+
+        if (taskType == null) {
+            throw new JsonParseException("Неизвестный тип задачи: " + taskTypeName);
+        }
+
+        return gson.fromJson(taskObject, taskType);
     }
 }
