@@ -19,12 +19,14 @@ public class Subtask extends Task {
         if (!Objects.equals(epicID, id)) {
             this.epicID = epicID;
         }
+        type = TaskType.SUBTASK;
     }
 
     // Конструктор копирования класса Subtask
     protected Subtask(Subtask otherSubtask) {
         super(otherSubtask);
         this.epicID = otherSubtask.epicID;
+        this.type = TaskType.SUBTASK;
     }
 
     // Получить id эпика

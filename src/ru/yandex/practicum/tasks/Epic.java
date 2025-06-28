@@ -17,6 +17,11 @@ public class Epic extends Task {
     private LocalDateTime endTime;
 
     // Конструктор класса Epic (для вновь создаваемых эпиков)
+    public Epic(int id, String name, String description) {
+        this(id, name, description, TaskStatus.NEW);
+    }
+
+    // Конструктор класса Epic (для вновь создаваемых эпиков)
     public Epic(int id, String name, String description, TaskStatus status) {
         // startTime и duration - расчётные, здесь присваиваем некоторые значения по умолчанию
         this(id, name, description, status, null, Duration.ZERO);
@@ -27,6 +32,7 @@ public class Epic extends Task {
                 Duration duration) {
         super(id, name, description, status, startTime, duration);
         subtaskIDs = new ArrayList<>();
+        type = TaskType.EPIC;
     }
 
     // Конструктор класса Epic
@@ -51,6 +57,7 @@ public class Epic extends Task {
         super(otherEpic);
         this.subtaskIDs = new ArrayList<>(otherEpic.subtaskIDs);
         this.endTime = otherEpic.endTime;
+        this.type = TaskType.EPIC;
     }
 
     // Получить список id всех подзадач
