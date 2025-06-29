@@ -1,9 +1,8 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.managers;
 
 import ru.yandex.practicum.tasks.*;
 
 import java.util.List;
-import java.util.Optional;
 
 // Интерфейс для предоставления функциональности трекера задач
 public interface TaskManager {
@@ -20,11 +19,11 @@ public interface TaskManager {
 
     void removeAllEpics();
 
-    Optional<Task> getBasicTaskById(int id);
+    Task getBasicTaskById(int id);
 
-    Optional<Subtask> getSubtaskById(int id);
+    Subtask getSubtaskById(int id);
 
-    Optional<Epic> getEpicById(int id);
+    Epic getEpicById(int id);
 
     void addBasicTask(Task task);
 
@@ -49,4 +48,6 @@ public interface TaskManager {
     List<Task> getHistory();
 
     int nextId();
+
+    List<Task> getPrioritizedTasks();
 }

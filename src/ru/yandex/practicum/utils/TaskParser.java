@@ -6,7 +6,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.yandex.practicum.utils.CSVUtils.parseLine;
+import static ru.yandex.practicum.utils.CsvUtils.parseLine;
 
 // Вспомогательный класс для парсинга задач из файла
 public final class TaskParser {

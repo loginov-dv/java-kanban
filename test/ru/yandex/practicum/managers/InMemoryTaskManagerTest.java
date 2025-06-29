@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.managers;
 
 import org.junit.jupiter.api.BeforeEach;
 

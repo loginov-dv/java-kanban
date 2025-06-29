@@ -1,4 +1,4 @@
-import ru.yandex.practicum.taskManagement.*;
+import ru.yandex.practicum.managers.*;
 import ru.yandex.practicum.tasks.*;
 
 import java.time.Duration;

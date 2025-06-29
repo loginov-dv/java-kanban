@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CsvUtils.escapeSpecialCharacters;
 
 // Класс для описания эпика (большой задачи)
 public class Epic extends Task {
@@ -15,6 +15,11 @@ public class Epic extends Task {
 
     // Дата и время завершения задачи
     private LocalDateTime endTime;
+
+    // Конструктор класса Epic (для вновь создаваемых эпиков)
+    public Epic(int id, String name, String description) {
+        this(id, name, description, TaskStatus.NEW);
+    }
 
     // Конструктор класса Epic (для вновь создаваемых эпиков)
     public Epic(int id, String name, String description, TaskStatus status) {
@@ -27,6 +32,7 @@ public class Epic extends Task {
                 Duration duration) {
         super(id, name, description, status, startTime, duration);
         subtaskIDs = new ArrayList<>();
+        type = TaskType.EPIC;
     }
 
     // Конструктор класса Epic
@@ -51,6 +57,7 @@ public class Epic extends Task {
         super(otherEpic);
         this.subtaskIDs = new ArrayList<>(otherEpic.subtaskIDs);
         this.endTime = otherEpic.endTime;
+        this.type = TaskType.EPIC;
     }
 
     // Получить список id всех подзадач

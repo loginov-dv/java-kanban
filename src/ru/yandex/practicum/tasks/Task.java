@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
-import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CsvUtils.escapeSpecialCharacters;
 
 // Базовый класс для описания задачи
 public class Task {
@@ -16,11 +16,15 @@ public class Task {
     // Уникальный идентификационный номер задачи
     private final int id;
     // Статус
+
     private final TaskStatus status;
     // Продолжительность выполнения задачи
     private final Duration duration;
     // Дата и время начала выполнения задачи
     private final LocalDateTime startTime;
+
+    // Тип задачи
+    protected TaskType type = TaskType.TASK;
 
     // Конструктор класса Task
     public Task(int id, String name, String description, TaskStatus status, LocalDateTime startTime,
