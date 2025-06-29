@@ -86,7 +86,7 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                 String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 JsonElement jsonElement = JsonParser.parseString(body);
 
-                if(!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
+                if (!jsonElement.isJsonObject()) { // проверяем, точно ли мы получили JSON-объект
                     writeResponse(exchange, "Некорректный формат подзадачи", 400);
                     return;
                 }
