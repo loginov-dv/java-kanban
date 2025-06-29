@@ -23,7 +23,7 @@ public class HttpTaskServerPriorityTest extends BaseHttpTaskServerTest {
         fillTaskManagerWithTestData();
 
         // Отправляем запрос
-        HttpResponse<String> response = sendRequest("http://localhost:8080/prioritized", METHOD_GET, "");
+        HttpResponse<String> response = sendRequest(PATH_PRIORITIZED, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
