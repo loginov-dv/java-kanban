@@ -1,28 +1,29 @@
 package ru.yandex.practicum.server;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.tasks.Task;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import ru.yandex.practicum.tasks.Task;
 
 // Класс для тестирования пути /prioritized
 public class HttpTaskServerPriorityTest extends BaseHttpTaskServerTest {
 
-    // Проверяет корректность получения приоретизированного списка задач
+    // Проверяет корректность получения приоретизированного списка задач (GET /prioritized)
     @Test
     void shouldReturnPrioritizedTasks() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
         // Отправляем запрос
-        HttpResponse<String> response = sendRequest("http://localhost:8080/prioritized", GET, "");
+        HttpResponse<String> response = sendRequest("http://localhost:8080/prioritized", METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -33,7 +34,8 @@ public class HttpTaskServerPriorityTest extends BaseHttpTaskServerTest {
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
 
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
+        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getPrioritizedTasks(), tasks, "Списки задач не равны");
     }

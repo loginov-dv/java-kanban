@@ -141,14 +141,10 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Выберем случайную задачу и изменим несколько её полей
+        // Выберем случайную задачу и изменим несколько её полей (имя, статус, дату начала)
         Random random = new Random();
         List<Task> tasks = taskManager.getAllBasicTasks();
         Task randomTask = tasks.get(random.nextInt(0, tasks.size()));
-
-        String oldName = randomTask.getName();
-        TaskStatus oldStatus = randomTask.getStatus();
-        LocalDateTime oldDateTime = randomTask.getStartTime().get(); // гарантированно не null
 
         Task updatedTask = new Task(randomTask.getID(), "new name", randomTask.getDescription(),
                 TaskStatus.IN_PROGRESS, LocalDateTime.now(), randomTask.getDuration());
@@ -168,13 +164,13 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
             fail("Задача не была добавлена в трекер");
         }
 
-        assertEquals(taskInManager.getName(), updatedTask.getName(), "Задачи не равны");
-        assertEquals(taskInManager.getDescription(), updatedTask.getDescription(), "Задачи не равны");
-        assertEquals(taskInManager.getStatus(), updatedTask.getStatus(), "Задачи не равны");
+        assertEquals(updatedTask.getName(), taskInManager.getName(), "Задачи не равны");
+        assertEquals(updatedTask.getDescription(), taskInManager.getDescription(), "Задачи не равны");
+        assertEquals(updatedTask.getStatus(), taskInManager.getStatus(), "Задачи не равны");
         assertTrue(updatedTask.getStartTime().isPresent(), "Задачи не равны");
-        assertEquals(taskInManager.getStartTime().orElse(null).format(dtf),
-                updatedTask.getStartTime().orElse(null).format(dtf), "Задачи не равны");
-        assertEquals(taskInManager.getDuration(), updatedTask.getDuration(), "Задачи не равны");
+        assertEquals(updatedTask.getStartTime().orElse(null).format(dtf),
+                taskInManager.getStartTime().orElse(null).format(dtf), "Задачи не равны");
+        assertEquals(updatedTask.getDuration(), taskInManager.getDuration(), "Задачи не равны");
     }
 
     // Проверяет удаление задачи (DELETE /tasks/{id})

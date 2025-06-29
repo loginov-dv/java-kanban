@@ -1,21 +1,21 @@
 package ru.yandex.practicum.server;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.tasks.Epic;
-import ru.yandex.practicum.tasks.Subtask;
-import ru.yandex.practicum.tasks.TaskStatus;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import ru.yandex.practicum.tasks.Epic;
+import ru.yandex.practicum.tasks.Subtask;
+import ru.yandex.practicum.tasks.Task;
 
 // Класс для тестирования пути /epics
 public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
@@ -25,18 +25,8 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_EPICS, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -49,7 +39,8 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
 
         // Получаем задачи и десериализуем в список
         JsonArray jsonArray = jsonElement.getAsJsonArray();
-        List<Epic> epics = gson.fromJson(jsonArray, new EpicListTypeToken().getType());
+        List<Epic> epics = gson.fromJson(jsonArray, new TypeToken<List<Task>>() {
+        }.getType());
 
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getAllEpics(), epics, "Списки эпиков не равны");
@@ -62,18 +53,9 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         fillTaskManagerWithTestData();
 
         for (Epic epic : taskManager.getAllEpics()) {
-            // Создаём клиент и запрос
-            URI url = URI.create("http://localhost:8080/epics/" + epic.getID());
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-            HttpRequest request = requestBuilder
-                    .GET()
-                    .uri(url)
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .header("Accept", "application/json")
-                    .build();
-            HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-            HttpResponse<String> response = client.send(request, handler);
+            // Отправляем запрос
+            String uri = PATH_EPICS + "/" + epic.getID();
+            HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
             // Проверяем код ответа
             assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -105,18 +87,9 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/" + 1021030);
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        String uri = PATH_EPICS + "/" + new Random().nextInt(100000, 200000);
+        HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(404, response.statusCode(), "Получен некорректный код ответа");
@@ -128,18 +101,9 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/" + "test");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        String uri = PATH_EPICS + "/" + "test";
+        HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(400, response.statusCode(), "Получен некорректный код ответа");
@@ -151,32 +115,22 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Создаём эпик
         // При передаче эпика он считается новым, если передаётся id <= 0
         // или отсутствует соответствующий элемент в JSON
-        Epic epic = new Epic(0, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(0, "epic", "description");
         String jsonEpic = gson.toJson(epic);
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonEpic))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_EPICS, METHOD_POST, jsonEpic);
 
         // Проверяем код ответа
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
 
         // Проверяем равенство полей эпика
-        List<Epic> epics = taskManager.getAllEpics();
+        assertEquals(1, taskManager.getAllEpics().size(), "Некорректное количество эпиков");
+        Epic epicInManager = taskManager.getAllEpics().getFirst();
 
-        assertEquals(1, epics.size(), "Некорректное количество эпиков");
-        assertEquals(epic.getName(), epics.getFirst().getName(), "Эпики не равны");
-        assertEquals(epic.getDescription(), epics.getFirst().getDescription(), "Эпики не равны");
-        assertEquals(epic.getStatus(), epics.getFirst().getStatus(), "Эпики не равны");
+        assertEquals(epic.getName(), epicInManager.getName(), "Эпики не равны");
+        assertEquals(epic.getDescription(), epicInManager.getDescription(), "Эпики не равны");
+        assertEquals(epic.getStatus(), epicInManager.getStatus(), "Эпики не равны");
     }
 
     // Проверяет изменение эпика (POST /epics)
@@ -185,26 +139,20 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // У эпика с id = 10 изменим имя
-        Epic epic = taskManager.getEpicById(10);
-        epic = new Epic(epic.getID(), "new name", epic.getDescription(), epic.getStatus(), epic.getSubtaskIDs(),
-                epic.getStartTime().get(), epic.getDuration(), epic.getEndTime().get()); // гарантированно присутствует
-        String jsonEpic = gson.toJson(epic);
+        // Выберем случайный эпик и изменим несколько его полей (имя, описание)
+        Random random = new Random();
+        List<Epic> epics = taskManager.getAllEpics();
+        Epic randomEpic = epics.get(random.nextInt(0, epics.size()));
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonEpic))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        Epic updatedEpic = new Epic(randomEpic.getID(), "new name", "new description",
+                randomEpic.getStatus(), randomEpic.getSubtaskIDs(), randomEpic.getStartTime().get(),
+                randomEpic.getDuration(), randomEpic.getEndTime().get()); // гарантированно присутствует
+        String jsonEpic = gson.toJson(updatedEpic);
 
-        // Проверяем код ответа - в спецификации нет обновления эпика
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_EPICS, METHOD_POST, jsonEpic);
+
+        // Проверяем код ответа (в спецификации нет обновления эпика)
         assertEquals(400, response.statusCode(), "Некорректный код ответа");
     }
 
@@ -214,28 +162,29 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Удалим эпик с id = 10
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/" + 10);
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .DELETE()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Удалим случайный эпик
+        Random random = new Random();
+        List<Epic> epics = taskManager.getAllEpics();
+        int epicsCount = epics.size();
+        Epic randomEpic = epics.get(random.nextInt(0, epics.size()));
+        List<Subtask> epicSubtasks = taskManager.getAllEpicSubtasks(randomEpic);
+
+        // Отправляем запрос
+        String uri = PATH_EPICS + "/" + randomEpic.getID();
+        HttpResponse<String> response = sendRequest(uri, METHOD_DELETE, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Некорректный код ответа");
 
         // Проверим, что эпик удалён из трекера
-        List<Epic> epics = taskManager.getAllEpics();
+        epics = taskManager.getAllEpics();
 
-        assertEquals(1, epics.size(), "Некорректное количество эпиков");
-        assertFalse(epics.stream().anyMatch(epic -> epic.getID() == 10), "Эпик с id = 10 не был удалён");
+        assertEquals(epicsCount - 1, epics.size(), "Некорректное количество эпиков");
+        assertFalse(epics.contains(randomEpic), "Эпик не был удалён из трекера");
+
+        // Проверим, что удалены также подзадачи удалённого эпика
+        boolean result = taskManager.getAllSubtasks().stream().noneMatch(epicSubtasks::contains);
+        assertTrue(result, "Позадачи эпика не были удалены из трекера");
     }
 
     // Проверяет получение подзадач эпика (GET /epics/{id}/subtasks)
@@ -244,20 +193,15 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Запросим подзадачи эпика с id = 10
-        Epic epic = taskManager.getEpicById(10);
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/epics/" + epic.getID() + "/subtasks");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Запросим подзадачи для случайного эпика
+        Random random = new Random();
+        List<Epic> epics = taskManager.getAllEpics();
+        Epic randomEpic = epics.get(random.nextInt(0, epics.size()));
+        List<Subtask> randomEpicSubtasks = taskManager.getAllEpicSubtasks(randomEpic);
+
+        // Отправляем запрос
+        String uri = PATH_EPICS + "/" + randomEpic.getID() + "/subtasks";
+        HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Некорректный код ответа");
@@ -269,9 +213,10 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
 
         // Получаем подзадачи и десериализуем в список
         JsonArray jsonArray = jsonElement.getAsJsonArray();
-        List<Subtask> subtasks = gson.fromJson(jsonArray, new SubtaskListTypeToken().getType());
+        List<Subtask> subtasks = gson.fromJson(jsonArray, new TypeToken<List<Task>>() {
+        }.getType());
 
         // Проверяем равенство коллекций
-        assertIterableEquals(taskManager.getAllEpicSubtasks(epic), subtasks, "Списки подзадач эпика не равны");
+        assertIterableEquals(randomEpicSubtasks, subtasks, "Списки подзадач эпика не равны");
     }
 }

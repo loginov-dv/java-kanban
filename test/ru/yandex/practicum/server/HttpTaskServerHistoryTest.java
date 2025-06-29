@@ -1,27 +1,24 @@
 package ru.yandex.practicum.server;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.exceptions.TaskNotFoundException;
-import ru.yandex.practicum.tasks.*;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
+import ru.yandex.practicum.tasks.*;
 
 // Класс для тестирования пути /history
 public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
-
-    // Проверяет корректность получения истории просмотра задач
+    // Проверяет корректность получения истории просмотра задач (GET /history)
     @Test
     void shouldReturnHistory() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
@@ -33,18 +30,8 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         taskManager.getSubtaskById(11);
         taskManager.getEpicById(10);
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/history");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -55,12 +42,13 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
 
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
+        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
     }
 
-    // Проверяет, что в историю не должен добавляться null
+    // Проверяет, что в историю не должен добавляться null (GET /history)
     @Test
     void shouldNotAddNullToHistory() throws IOException, InterruptedException {
         // Проверяем, что история не содержит задач
@@ -68,20 +56,10 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
 
         try {
             // Пытаемся получить задачу, которой нету в трекере
-            taskManager.getBasicTaskById(999);
+            taskManager.getBasicTaskById(new Random().nextInt(100000, 200000));
         } catch (TaskNotFoundException exception) {
-            // Создаём клиент и запрос
-            URI url = URI.create("http://localhost:8080/history");
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-            HttpRequest request = requestBuilder
-                    .GET()
-                    .uri(url)
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .header("Accept", "application/json")
-                    .build();
-            HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-            HttpResponse<String> response = client.send(request, handler);
+            // Отправляем запрос
+            HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
 
             // Проверяем код ответа
             assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -97,7 +75,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         }
     }
 
-    // Проверяет, что задача удаляется из истории при удалении из трекера
+    // Проверяет, что задача удаляется из истории при удалении из трекера (GET /history)
     @Test
     void shouldRemoveTaskFromHistoryWhenRemovedFromManager() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
@@ -109,143 +87,110 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         taskManager.getSubtaskById(11);
         taskManager.getEpicById(10);
 
-        // Удалим задачу с id = 1
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/" + 1);
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .DELETE()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
-
-        // Проверяем код ответа
-        assertEquals(200, response.statusCode(), "Некорректный код ответа");
-
-        // Проверим корректность удаления из истории
-        // Создаём клиент и запрос
-        url = URI.create("http://localhost:8080/history");
-        request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        response = client.send(request, handler);
-
+        // Проверим, что задача с id = 1 присутствует в истории
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
-
         // Получаем и парсим тело ответа
         JsonElement jsonElement = JsonParser.parseString(response.body());
         // Проверяем, что сервер вернул json-массив
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
-
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
+        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
+        // Проверяем присутствие задачи с id = 1
+        assertTrue(tasks.stream().anyMatch(item -> item.getID() == 1),
+                "Некорректное добавление в историю задач");
+        // Проверяем равенство коллекций
+        assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
+
+        // Удалим задачу с id = 1
+        taskManager.removeBasicTaskById(1);
+
+        // Проверим корректность удаления из истории
+        // Отправляем запрос
+        response = sendRequest(PATH_HISTORY, METHOD_GET, "");
+        // Проверяем код ответа
+        assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
+        // Получаем и парсим тело ответа
+        jsonElement = JsonParser.parseString(response.body());
+        // Проверяем, что сервер вернул json-массив
+        assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
+        // Получаем задачи и десериализуем в список
+        tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
+        // Проверяем отсутствие задачи с id = 1
+        assertTrue(tasks.stream().noneMatch(item -> item.getID() == 1),
+                "Некорректное добавление в историю задач");
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
     }
 
-    // Проверяет, что в истории хранится предыдущее состояние задачи
+    // Проверяет, что в истории хранится предыдущее состояние задачи (GET /history)
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Запрашиваем задачи для формирования истории
-        Task task1 = taskManager.getBasicTaskById(1);
+        // Выберем случайную задачу и изменим несколько одно из её полей
+        Random random = new Random();
+        List<Task> tasks = taskManager.getAllBasicTasks();
+        int randomTaskId = tasks.get(random.nextInt(0, tasks.size())).getID();
+        Task randomTask = taskManager.getBasicTaskById(randomTaskId); // добавили в историю
+        String oldDescription = randomTask.getDescription();
 
-        // Изменим поле description у задачи с id = 1 и обновим её
-        String oldDescription = task1.getDescription();
-        int id = task1.getID();
-        String newDescription = "new description of task1";
-        task1 = new Task(task1.getID(), task1.getName(), newDescription, task1.getStatus(),
-                task1.getStartTime().orElse(null), task1.getDuration());
-        String jsonTask = gson.toJson(task1);
+        String newDescription = "new description of randomTask";
+        Task updatedTask = new Task(randomTask.getID(), randomTask.getName(), newDescription,
+                randomTask.getStatus(), randomTask.getStartTime().orElse(null), randomTask.getDuration());
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        taskManager.updateBasicTask(updatedTask);
 
-        // Проверяем код ответа
-        assertEquals(201, response.statusCode(), "Некорректный код ответа");
-
-        // Проверим, что в истории хранится предыдущее состояние задачи с id = 1
+        // Проверим, что в истории хранится предыдущее состояние этой задачи
         // (задача после обновления не запрашивалась на просмотр)
-        // Создаём клиент и запрос
-        url = URI.create("http://localhost:8080/history");
-        request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        response = client.send(request, handler);
-
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
-
         // Получаем и парсим тело ответа
         JsonElement jsonElement = JsonParser.parseString(response.body());
         // Проверяем, что сервер вернул json-массив
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
-
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
-        // Проверяем равенство коллекций
-        assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
+        tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем, что описание в истории не изменилось
         assertEquals(oldDescription,
-                tasks.stream().filter(task -> task.getID() == id).map(Task::getDescription).findFirst().get(),
-                "Некорректное состояние задачи с id = 1 в истории просмотра");
+                tasks.stream()
+                        .filter(task -> task.getID() == randomTaskId)
+                        .map(Task::getDescription)
+                        .findFirst().get(),
+                "Некорректное состояние задачи в истории просмотра");
 
-        // Получим задачу с id = 1
-        taskManager.getBasicTaskById(1);
+        // Запросим задачу, тем самым добавив её в историю
+        taskManager.getBasicTaskById(randomTaskId);
 
-        // Проверим, что в истории теперь хранится новое состояние задачи с id = 1
-        url = URI.create("http://localhost:8080/history");
-        request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        response = client.send(request, handler);
-
+        // Проверим, что в истории теперь хранится новое состояние задачи
+        response = sendRequest(PATH_HISTORY, METHOD_GET, "");
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
-
         // Получаем и парсим тело ответа
         jsonElement = JsonParser.parseString(response.body());
         // Проверяем, что сервер вернул json-массив
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
-
         // Получаем задачи и десериализуем в список
-        tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
-        // Проверяем равенство коллекций
-        assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
-
+        tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем, что описание изменилось после запроса задачи
         assertEquals(newDescription,
-                tasks.stream().filter(task -> task.getID() == id).map(Task::getDescription).findFirst().get(),
-                "Некорректное состояние задачи с id = 1 в истории просмотра");
+                tasks.stream()
+                        .filter(task -> task.getID() == randomTaskId)
+                        .map(Task::getDescription)
+                        .findFirst().get(),
+                "Некорректное состояние задачи в истории просмотра");
     }
 
-    // Проверяет, что история не содержит дубликатов задач
+    // Проверяет, что история не содержит дубликатов задач (GET /history)
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenTaskViewedMultipleTimes() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
@@ -261,18 +206,8 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         // Проверим, что задачи попали в историю
         // В истории должно быть всего две задачи, несмотря на то, что
         // одна из задач была запрошена несколько раз
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/history");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -282,13 +217,15 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         // Проверяем, что сервер вернул json-массив
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
+        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
         assertEquals(2, tasks.size(), "Некорректное добавление задач в историю просмотра");
     }
 
     // Проверяет, что при удалении эпика из трекера, он также удаляется и из истории вместе с его подзадачами
+    // (GET /history)
     @Test
     void shouldRemoveEpicFromHistoryWithItsSubtasksWhenRemovedFromManager() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
@@ -312,18 +249,8 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         taskManager.removeEpicById(randomEpicId);
 
         // Проверим, что эпика и его подзадач больше нет в истории
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/history");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_HISTORY, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -333,7 +260,8 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
         // Проверяем, что сервер вернул json-массив
         assertTrue(jsonElement.isJsonArray(), "Сервер вернул не массив");
         // Получаем задачи и десериализуем в список
-        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
+        List<Task> tasks = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getHistory(), tasks, "Списки задач не равны");
         assertFalse(tasks.contains(randomEpic), "Эпик не был удалён из истории");
