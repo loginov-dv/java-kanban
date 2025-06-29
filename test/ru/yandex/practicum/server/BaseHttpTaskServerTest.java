@@ -4,9 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +31,10 @@ public class BaseHttpTaskServerTest {
     protected DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
     // Экземпляр класса Gson
     protected Gson gson;
+    // Константы для HTTP-методов
+    protected static final String GET = "GET";
+    protected static final String POST = "POST";
+    protected static final String DELETE = "DELETE";
 
     public BaseHttpTaskServerTest() {
         // Конфигурируем JSON десериализатор списка задач
@@ -57,7 +66,7 @@ public class BaseHttpTaskServerTest {
     }
 
     // Предзаполнение тестовыми данными
-    protected void fill() {
+    protected void fillTaskManagerWithTestData() {
         Task task1 = new Task(1, "Task 1", "description", TaskStatus.NEW,
                 LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         Task task2 = new Task(2, "Task 2", "description", TaskStatus.IN_PROGRESS,
@@ -81,6 +90,33 @@ public class BaseHttpTaskServerTest {
                 LocalDateTime.of(2028, 1, 10, 10, 0), Duration.ofMinutes(60));
         taskManager.addSubtask(subtask11);
         taskManager.addSubtask(subtask21);
+    }
+
+    protected HttpResponse<String> sendRequest(String uriString, String method, String body)
+            throws IOException, InterruptedException {
+        URI uri = URI.create(uriString);
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+        switch (method) {
+            case GET:
+                requestBuilder.GET();
+                break;
+            case POST:
+                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+                break;
+            case DELETE:
+                requestBuilder.DELETE();
+                break;
+            default:
+                Assertions.fail("Передан некорректный HTTP-метод");
+        }
+        HttpRequest request = requestBuilder
+                .uri(uri)
+                .version(HttpClient.Version.HTTP_1_1)
+                .header("Accept", "application/json")
+                .build();
+        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+        return client.send(request, handler);
     }
 }
 

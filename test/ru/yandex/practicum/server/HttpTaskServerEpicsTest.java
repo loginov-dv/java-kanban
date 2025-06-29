@@ -23,7 +23,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetAllEpics() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/epics");
@@ -59,7 +59,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetSingleEpic() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         for (Epic epic : taskManager.getAllEpics()) {
             // Создаём клиент и запрос
@@ -103,7 +103,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldNotGetEpicThatDoesntExist() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/epics/" + 1021030);
@@ -126,7 +126,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldHandleInvalidId() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/epics/" + "test");
@@ -183,7 +183,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldUpdateEpic() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // У эпика с id = 10 изменим имя
         Epic epic = taskManager.getEpicById(10);
@@ -212,7 +212,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldDeleteEpic() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Удалим эпик с id = 10
         // Создаём клиент и запрос
@@ -242,7 +242,7 @@ public class HttpTaskServerEpicsTest extends BaseHttpTaskServerTest {
     @Test
     void shouldReturnEpicSubtasks() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Запросим подзадачи эпика с id = 10
         Epic epic = taskManager.getEpicById(10);

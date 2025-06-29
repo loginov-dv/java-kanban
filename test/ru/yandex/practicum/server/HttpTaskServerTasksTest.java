@@ -23,7 +23,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetAllTasks() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/tasks");
@@ -59,7 +59,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetSingleTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         for (Task task : taskManager.getAllBasicTasks()) {
             // Создаём клиент и запрос
@@ -100,7 +100,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldNotGetTaskThatDoesntExist() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/tasks/" + 1021030);
@@ -123,7 +123,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldHandleInvalidId() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/tasks/" + "test");
@@ -186,7 +186,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldUpdateTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // У задачи с id = 1 изменим имя, статус и дату начала
         Task task = taskManager.getBasicTaskById(1);
@@ -232,7 +232,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldDeleteTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Удалим задачу с id = 1
         // Создаём клиент и запрос
@@ -262,7 +262,7 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldNotAddTaskThatHasOverlapWithSomeOtherTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём задачу, которая имеет пересечение с другой задачей
         Task task = new Task(0, "test", "description", TaskStatus.NEW,

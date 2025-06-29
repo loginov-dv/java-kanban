@@ -25,7 +25,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetAllSubtasks() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/subtasks");
@@ -61,7 +61,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldGetSingleSubtask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         for (Subtask subtask : taskManager.getAllSubtasks()) {
             // Создаём клиент и запрос
@@ -103,7 +103,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldNotGetSubtaskThatDoesntExist() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/subtasks/" + 1021030);
@@ -126,7 +126,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldHandleInvalidId() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём клиент и запрос
         URI url = URI.create("http://localhost:8080/subtasks/" + "test");
@@ -190,7 +190,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldUpdateSubtask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // У подзадачи с id = 11 изменим имя, статус и дату начала
         Subtask subtask = taskManager.getSubtaskById(11);
@@ -236,7 +236,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldDeleteSubtask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Удалим подзадачу с id = 11
         // Создаём клиент и запрос
@@ -267,7 +267,7 @@ public class HttpTaskServerSubtasksTest extends BaseHttpTaskServerTest {
     @Test
     void shouldNotAddSubtaskThatHasOverlapWithSomeOtherTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Создаём подзадачу, которая имеет пересечение с другой задачей
         Subtask subtask = new Subtask(0, "test", "description", TaskStatus.NEW, 1000,

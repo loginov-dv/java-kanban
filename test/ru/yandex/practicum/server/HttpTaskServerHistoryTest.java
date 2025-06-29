@@ -25,7 +25,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
     @Test
     void shouldReturnHistory() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Запрашиваем задачи для формирования истории
         taskManager.getBasicTaskById(1);
@@ -101,7 +101,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
     @Test
     void shouldRemoveTaskFromHistoryWhenRemovedFromManager() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Запрашиваем задачи для формирования истории
         taskManager.getBasicTaskById(1);
@@ -155,7 +155,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenUpdatedTask() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Запрашиваем задачи для формирования истории
         Task task1 = taskManager.getBasicTaskById(1);
@@ -249,7 +249,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
     @Test
     void shouldKeepOnlyRecentViewOfTaskInHistoryWhenTaskViewedMultipleTimes() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Получим задачи по id
         taskManager.getBasicTaskById(1);
@@ -292,7 +292,7 @@ public class HttpTaskServerHistoryTest extends BaseHttpTaskServerTest {
     @Test
     void shouldRemoveEpicFromHistoryWithItsSubtasksWhenRemovedFromManager() throws IOException, InterruptedException {
         // Заполняем трекер тестовыми данными
-        fill();
+        fillTaskManagerWithTestData();
 
         // Запросим все эпики и подзадачи
         // (в тестовых данных содержится два эпика, каждый из них содержит по одной подзадаче)
