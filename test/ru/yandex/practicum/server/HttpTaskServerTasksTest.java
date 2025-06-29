@@ -3,19 +3,19 @@ package ru.yandex.practicum.server;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.exceptions.TaskNotFoundException;
-import ru.yandex.practicum.tasks.Task;
-import ru.yandex.practicum.tasks.TaskStatus;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
+
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
+import ru.yandex.practicum.tasks.Task;
+import ru.yandex.practicum.tasks.TaskStatus;
 
 // Класс для тестирования пути /tasks
 class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
@@ -25,18 +25,8 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_TASKS, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -49,7 +39,8 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
 
         // Получаем задачи и десериализуем в список
         JsonArray jsonArray = jsonElement.getAsJsonArray();
-        List<Task> tasks = gson.fromJson(jsonArray, new TaskListTypeToken().getType());
+        List<Task> tasks = gson.fromJson(jsonArray, new TypeToken<List<Task>>() {
+        }.getType());
 
         // Проверяем равенство коллекций
         assertIterableEquals(taskManager.getAllBasicTasks(), tasks, "Списки задач не равны");
@@ -62,18 +53,9 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         fillTaskManagerWithTestData();
 
         for (Task task : taskManager.getAllBasicTasks()) {
-            // Создаём клиент и запрос
-            URI url = URI.create("http://localhost:8080/tasks/" + task.getID());
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-            HttpRequest request = requestBuilder
-                    .GET()
-                    .uri(url)
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .header("Accept", "application/json")
-                    .build();
-            HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-            HttpResponse<String> response = client.send(request, handler);
+            // Отправляем запрос
+            String uri = PATH_TASKS + "/" + task.getID();
+            HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
             // Проверяем код ответа
             assertEquals(200, response.statusCode(), "Получен некорректный код ответа");
@@ -102,18 +84,9 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/" + 1021030);
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        String uri = PATH_TASKS + "/" + new Random().nextInt(100000, 200000);
+        HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(404, response.statusCode(), "Получен некорректный код ответа");
@@ -125,18 +98,9 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/" + "test");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .GET()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        String uri = PATH_TASKS + "/" + "test";
+        HttpResponse<String> response = sendRequest(uri, METHOD_GET, "");
 
         // Проверяем код ответа
         assertEquals(400, response.statusCode(), "Получен некорректный код ответа");
@@ -152,34 +116,23 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
                 Duration.ofMinutes(10));
         String jsonTask = gson.toJson(task);
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_TASKS, METHOD_POST, jsonTask);
 
         // Проверяем код ответа
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
 
         // Проверяем равенство полей задач
-        List<Task> tasks = taskManager.getAllBasicTasks();
+        assertEquals(1, taskManager.getAllBasicTasks().size(), "Некорректное количество задач");
+        Task taskInManager = taskManager.getAllBasicTasks().getFirst();
 
-        assertEquals(1, tasks.size(), "Некорректное количество задач");
-        assertEquals(task.getName(), tasks.getFirst().getName(), "Задачи не равны");
-        assertEquals(task.getDescription(), tasks.getFirst().getDescription(), "Задачи не равны");
-        assertEquals(task.getStatus(), tasks.getFirst().getStatus(), "Задачи не равны");
-        assertNotNull(tasks.getFirst().getStartTime().orElse(null), "Задачи не равны");
-        assertEquals(task.getStartTime().orElse(null).format(dtf), // гарантированно не null
-                tasks.getFirst().getStartTime().orElse(null).format(dtf),
-                "Задачи не равны");
-        assertEquals(task.getDuration(), tasks.getFirst().getDuration(), "Задачи не равны");
+        assertEquals(taskInManager.getName(), task.getName(), "Задачи не равны");
+        assertEquals(taskInManager.getDescription(), task.getDescription(), "Задачи не равны");
+        assertEquals(taskInManager.getStatus(), task.getStatus(), "Задачи не равны");
+        assertTrue(task.getStartTime().isPresent(), "Задачи не равны");
+        assertEquals(taskInManager.getStartTime().orElse(null).format(dtf),
+                task.getStartTime().orElse(null).format(dtf), "Задачи не равны");
+        assertEquals(taskInManager.getDuration(), task.getDuration(), "Задачи не равны");
     }
 
     // Проверяет изменение задачи (POST /tasks)
@@ -188,24 +141,21 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // У задачи с id = 1 изменим имя, статус и дату начала
-        Task task = taskManager.getBasicTaskById(1);
-        task = new Task(task.getID(), "new name", task.getDescription(), TaskStatus.IN_PROGRESS,
-                LocalDateTime.now(), task.getDuration());
-        String jsonTask = gson.toJson(task);
+        // Выберем случайную задачу и изменим несколько её полей
+        Random random = new Random();
+        List<Task> tasks = taskManager.getAllBasicTasks();
+        Task randomTask = tasks.get(random.nextInt(0, tasks.size()));
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        String oldName = randomTask.getName();
+        TaskStatus oldStatus = randomTask.getStatus();
+        LocalDateTime oldDateTime = randomTask.getStartTime().get(); // гарантированно не null
+
+        Task updatedTask = new Task(randomTask.getID(), "new name", randomTask.getDescription(),
+                TaskStatus.IN_PROGRESS, LocalDateTime.now(), randomTask.getDuration());
+        String jsonTask = gson.toJson(updatedTask);
+
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_TASKS, METHOD_POST, jsonTask);
 
         // Проверяем код ответа
         assertEquals(201, response.statusCode(), "Некорректный код ответа");
@@ -213,19 +163,18 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Проверяем равенство полей задач
         Task taskInManager = null;
         try {
-            taskInManager = taskManager.getBasicTaskById(task.getID());
+            taskInManager = taskManager.getBasicTaskById(updatedTask.getID());
         } catch (TaskNotFoundException exception) {
             fail("Задача не была добавлена в трекер");
         }
 
-        assertEquals(task.getName(), taskInManager.getName(), "Задачи не равны");
-        assertEquals(task.getDescription(), taskInManager.getDescription(), "Задачи не равны");
-        assertEquals(task.getStatus(), taskInManager.getStatus(), "Задачи не равны");
-        assertNotNull(taskInManager.getStartTime().orElse(null), "Задачи не равны");
-        assertEquals(task.getStartTime().orElse(null).format(dtf), // гарантированно не null
-                taskInManager.getStartTime().orElse(null).format(dtf),
-                "Задачи не равны");
-        assertEquals(task.getDuration(), taskInManager.getDuration(), "Задачи не равны");
+        assertEquals(taskInManager.getName(), updatedTask.getName(), "Задачи не равны");
+        assertEquals(taskInManager.getDescription(), updatedTask.getDescription(), "Задачи не равны");
+        assertEquals(taskInManager.getStatus(), updatedTask.getStatus(), "Задачи не равны");
+        assertTrue(updatedTask.getStartTime().isPresent(), "Задачи не равны");
+        assertEquals(taskInManager.getStartTime().orElse(null).format(dtf),
+                updatedTask.getStartTime().orElse(null).format(dtf), "Задачи не равны");
+        assertEquals(taskInManager.getDuration(), updatedTask.getDuration(), "Задачи не равны");
     }
 
     // Проверяет удаление задачи (DELETE /tasks/{id})
@@ -234,28 +183,24 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         // Заполняем трекер тестовыми данными
         fillTaskManagerWithTestData();
 
-        // Удалим задачу с id = 1
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/" + 1);
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .DELETE()
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Удалим случайную задачу
+        Random random = new Random();
+        List<Task> tasks = taskManager.getAllBasicTasks();
+        int tasksCount = tasks.size();
+        Task randomTask = tasks.get(random.nextInt(0, tasks.size()));
+
+        // Отправляем запрос
+        String uri = PATH_TASKS + "/" + randomTask.getID();
+        HttpResponse<String> response = sendRequest(uri, METHOD_DELETE, "");
 
         // Проверяем код ответа
         assertEquals(200, response.statusCode(), "Некорректный код ответа");
 
         // Проверим, что задача удалена из трекера
-        List<Task> tasks = taskManager.getAllBasicTasks();
+        tasks = taskManager.getAllBasicTasks();
 
-        assertEquals(2, tasks.size(), "Некорректное количество задач");
-        assertFalse(tasks.stream().anyMatch(task -> task.getID() == 1), "Задача с id = 1 не была удалена");
+        assertEquals(tasksCount - 1, tasks.size(), "Некорректное количество задач");
+        assertFalse(tasks.contains(randomTask), "Задача не была удалена из трекера");
     }
 
     // Проверяет добавление задачи, имеющей пересечение с другой задачей (POST /tasks)
@@ -265,22 +210,15 @@ class HttpTaskServerTasksTest extends BaseHttpTaskServerTest {
         fillTaskManagerWithTestData();
 
         // Создаём задачу, которая имеет пересечение с другой задачей
-        Task task = new Task(0, "test", "description", TaskStatus.NEW,
-                LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
-        String jsonTask = gson.toJson(task);
+        Random random = new Random();
+        List<Task> tasks = taskManager.getAllBasicTasks();
+        Task randomTask = tasks.get(random.nextInt(0, tasks.size()));
+        Task newTask = new Task(0, "test", "description", TaskStatus.NEW,
+                randomTask.getStartTime().orElse(null), randomTask.getDuration());
+        String jsonTask = gson.toJson(newTask);
 
-        // Создаём клиент и запрос
-        URI url = URI.create("http://localhost:8080/tasks/");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        HttpRequest request = requestBuilder
-                .POST(HttpRequest.BodyPublishers.ofString(jsonTask))
-                .uri(url)
-                .version(HttpClient.Version.HTTP_1_1)
-                .header("Accept", "application/json")
-                .build();
-        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, handler);
+        // Отправляем запрос
+        HttpResponse<String> response = sendRequest(PATH_TASKS, METHOD_POST, jsonTask);
 
         // Проверяем код ответа
         assertEquals(406, response.statusCode(), "Некорректный код ответа");
