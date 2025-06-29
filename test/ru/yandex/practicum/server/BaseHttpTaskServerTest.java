@@ -21,7 +21,7 @@ import ru.yandex.practicum.managers.InMemoryTaskManager;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.*;
 
-// Базовый класс для тестов путей
+// Базовый класс для тестов путей HttpTaskServer
 public class BaseHttpTaskServerTest {
     // Трекер задач
     protected TaskManager taskManager = new InMemoryTaskManager();
@@ -32,10 +32,17 @@ public class BaseHttpTaskServerTest {
     // Экземпляр класса Gson
     protected Gson gson;
     // Константы для HTTP-методов
-    protected static final String GET = "GET";
-    protected static final String POST = "POST";
-    protected static final String DELETE = "DELETE";
+    protected static final String METHOD_GET = "GET";
+    protected static final String METHOD_POST = "POST";
+    protected static final String METHOD_DELETE = "DELETE";
+    // Константы для путей
+    protected static final String PATH_TASKS = "http://localhost:8080/tasks";
+    protected static final String PATH_SUBTASKS = "http://localhost:8080/subtasks";
+    protected static final String PATH_EPICS = "http://localhost:8080/epics";
+    protected static final String PATH_HISTORY = "http://localhost:8080/history";
+    protected static final String PATH_PRIORITIZED = "http://localhost:8080/prioritized";
 
+    // Конструктор класса BaseHttpTaskServerTest
     public BaseHttpTaskServerTest() {
         // Конфигурируем JSON десериализатор списка задач
         TaskDeserializer deserializer = new TaskDeserializer("type");
@@ -52,6 +59,7 @@ public class BaseHttpTaskServerTest {
                 .create();
     }
 
+    // Очистить трекер задач и запустить сервер
     @BeforeEach
     void beforeEach() throws IOException {
         taskManager.removeAllSubtasks();
@@ -60,13 +68,15 @@ public class BaseHttpTaskServerTest {
         taskServer.start();
     }
 
+    // Остановить сервер
     @AfterEach
     void afterEach() {
         taskServer.stop();
     }
 
-    // Предзаполнение тестовыми данными
+    // Наполнить менеджер тестовыми данными
     protected void fillTaskManagerWithTestData() {
+        // Задачи
         Task task1 = new Task(1, "Task 1", "description", TaskStatus.NEW,
                 LocalDateTime.of(2025, 1, 1, 10, 0), Duration.ofMinutes(60));
         Task task2 = new Task(2, "Task 2", "description", TaskStatus.IN_PROGRESS,
@@ -77,11 +87,13 @@ public class BaseHttpTaskServerTest {
         taskManager.addBasicTask(task2);
         taskManager.addBasicTask(task3);
 
-        Epic epic1 = new Epic(10, "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(20, "Эпик 2", "Описание", TaskStatus.NEW);
+        // Эпики
+        Epic epic1 = new Epic(10, "Эпик 1", "Описание");
+        Epic epic2 = new Epic(20, "Эпик 2", "Описание");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
+        // Подзадачи
         Subtask subtask11 = new Subtask(11, "Подзадача 11", "Описание",
                 TaskStatus.IN_PROGRESS, epic1.getID(),
                 LocalDateTime.of(2028, 1, 1, 10, 0), Duration.ofMinutes(60));
@@ -92,19 +104,24 @@ public class BaseHttpTaskServerTest {
         taskManager.addSubtask(subtask21);
     }
 
+    // Отправить HTTP-запрос с заданными параметрами
     protected HttpResponse<String> sendRequest(String uriString, String method, String body)
             throws IOException, InterruptedException {
+        if (!body.isEmpty() && !method.equals(METHOD_POST)) {
+            Assertions.fail("Передано тело запроса, хотя метод не является POST");
+        }
+
         URI uri = URI.create(uriString);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         switch (method) {
-            case GET:
+            case METHOD_GET:
                 requestBuilder.GET();
                 break;
-            case POST:
+            case METHOD_POST:
                 requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
                 break;
-            case DELETE:
+            case METHOD_DELETE:
                 requestBuilder.DELETE();
                 break;
             default:
@@ -116,6 +133,7 @@ public class BaseHttpTaskServerTest {
                 .header("Accept", "application/json")
                 .build();
         HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+
         return client.send(request, handler);
     }
 }
