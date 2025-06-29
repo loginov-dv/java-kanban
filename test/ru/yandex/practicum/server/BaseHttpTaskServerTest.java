@@ -2,7 +2,6 @@ package ru.yandex.practicum.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,10 +14,13 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import ru.yandex.practicum.managers.InMemoryTaskManager;
 import ru.yandex.practicum.managers.TaskManager;
+import ru.yandex.practicum.server.adapters.DurationAdapter;
+import ru.yandex.practicum.server.adapters.LocalDateTimeAdapter;
+import ru.yandex.practicum.server.adapters.TaskDeserializer;
+import ru.yandex.practicum.server.adapters.TaskStatusAdapter;
 import ru.yandex.practicum.tasks.*;
 
 // Базовый класс для тестов путей HttpTaskServer
@@ -136,19 +138,4 @@ public class BaseHttpTaskServerTest {
 
         return client.send(request, handler);
     }
-}
-
-// Вспомогательный класс для десериализации списков задач
-class TaskListTypeToken extends TypeToken<List<Task>> {
-
-}
-
-// Вспомогательный класс для десериализации списков подзадач
-class SubtaskListTypeToken extends TypeToken<List<Subtask>> {
-
-}
-
-// Вспомогательный класс для десериализации списков эпиков
-class EpicListTypeToken extends TypeToken<List<Epic>> {
-
 }
