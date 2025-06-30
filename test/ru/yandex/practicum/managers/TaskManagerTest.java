@@ -43,7 +43,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddEpic() {
         // Создаём эпик
-        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "epic", "description");
         taskManager.addEpic(epic);
 
         // Проверяем добавление эпика
@@ -82,7 +82,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldFindEpic() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "epic", "description");
         taskManager.addEpic(epic);
 
         // Проверяем получение эпика по id
@@ -178,7 +178,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicStatusWhenAddedNewSubtasks() {
         // Создадим эпик и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание");
         taskManager.addEpic(epic1);
 
         // Создадим подзадачу со статусом NEW
@@ -212,7 +212,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicStatusWhenRemovedSubtask() {
         // Создаём эпик и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание");
         taskManager.addEpic(epic1);
 
         // Создаём подзадачу, которая ссылается на этот эпик
@@ -244,7 +244,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicStatusWhenUpdatedSubtasks() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description");
         taskManager.addEpic(epic);
 
         // Создаём подзадачи со ссылкой на эпик
@@ -305,8 +305,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveSubtasksWhenRemovedEpic() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description");
+        Epic epic2 = new Epic(2, "Epic", "description");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
@@ -339,8 +339,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicStatusWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание");
+        Epic epic2 = new Epic(2, "Эпик 2", "Описание");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
@@ -382,8 +382,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveSubtasksWhenRemovedAllEpics() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description");
+        Epic epic2 = new Epic(2, "Epic", "description");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
@@ -409,7 +409,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddSingleTaskToHistory() {
         // Создаём эпик и добавляем в трекер
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description");
         taskManager.addEpic(epic);
 
         // Проверяем, что история пуста
@@ -431,7 +431,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddMultipleTasksToHistory() {
         // Создаём эпик
-        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(10, "epic", "description");
         taskManager.addEpic(epic);
 
         // Создаём подзадачу
@@ -540,7 +540,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
         // Создадим эпик и добавим в трекер
-        Epic epic = new Epic(10, "epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(10, "epic", "description");
         taskManager.addEpic(epic);
 
         // Получим задачи и эпик по id
@@ -747,8 +747,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldRemoveEpicFromHistoryWithItsSubtasksWhenRemovedFromManager() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description");
+        Epic epic2 = new Epic(2, "Epic", "description");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
@@ -793,7 +793,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicTimeParamsWhenAddedSubtasks() {
         // Создадим эпик и добавляем в трекер
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description");
         taskManager.addEpic(epic);
 
         // Создадим подзадачу
@@ -849,7 +849,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicTimeParamsWhenRemovedSubtask() {
         // Создадим эпик
-        Epic epic = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Эпик 1", "Описание");
         taskManager.addEpic(epic);
 
         // Создадим подзадачу
@@ -883,7 +883,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicTimeParamsWhenUpdatedSubtasks() {
         // Создаём эпик
-        Epic epic = new Epic(1, "Epic", "description", TaskStatus.NEW);
+        Epic epic = new Epic(1, "Epic", "description");
         taskManager.addEpic(epic);
 
         // Создаём подзадачи
@@ -942,8 +942,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldUpdateEpicTimeParamsWhenRemovedAllSubtasks() {
         // Создаём эпики и добавляем в трекер
-        Epic epic1 = new Epic(1, "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Эпик 1", "Описание");
+        Epic epic2 = new Epic(2, "Эпик 2", "Описание");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 
