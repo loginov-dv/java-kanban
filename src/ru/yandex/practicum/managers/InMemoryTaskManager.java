@@ -110,41 +110,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение задачи (обычной) по id
     @Override
-    public Task getBasicTaskById(int id) {
-        if (basicTasks.containsKey(id)) {
-            // Добавляем задачу в историю просмотра
-            addToHistory(basicTasks.get(id));
-
-            return basicTasks.get(id);
+    public Task getBasicTaskById(int id) throws TaskNotFoundException {
+        if (!basicTasks.containsKey(id)) {
+            throw new TaskNotFoundException("Задача с id = " + id + " не найдена");
         }
 
-        throw new TaskNotFoundException("Задача с id = " + id + " не найдена");
+        // Добавляем задачу в историю просмотра
+        addToHistory(basicTasks.get(id));
+
+        return basicTasks.get(id);
     }
 
     // Получение подзадачи по id
     @Override
-    public Subtask getSubtaskById(int id) {
-        if (subtasks.containsKey(id)) {
-            // Добавляем подзадачу в историю просмотра
-            addToHistory(subtasks.get(id));
-
-            return subtasks.get(id);
+    public Subtask getSubtaskById(int id) throws TaskNotFoundException {
+        if (!subtasks.containsKey(id)) {
+            throw new TaskNotFoundException("Подзадача с id = " + id + " не найдена");
         }
 
-        throw new TaskNotFoundException("Подзадача с id = " + id + " не найдена");
+        // Добавляем подзадачу в историю просмотра
+        addToHistory(subtasks.get(id));
+
+        return subtasks.get(id);
     }
 
     // Получение эпика по id
     @Override
-    public Epic getEpicById(int id) {
-        if (epics.containsKey(id)) {
-            // Добавляем эпик в историю просмотра
-            addToHistory(epics.get(id));
-
-            return epics.get(id);
+    public Epic getEpicById(int id) throws TaskNotFoundException {
+        if (!epics.containsKey(id)) {
+            throw new TaskNotFoundException("Эпик с id = " + id + " не найден");
         }
 
-        throw new TaskNotFoundException("Эпик с id = " + id + " не найден");
+        // Добавляем эпик в историю просмотра
+        addToHistory(epics.get(id));
+
+        return epics.get(id);
     }
 
     // Добавление новой задачи (обычной)
@@ -248,10 +248,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление задачи (обычной)
     @Override
-    public void updateBasicTask(Task updatedTask) throws TaskOverlapException {
-        // Ничего не делаем, если нет задачи с таким идентификатором
+    public void updateBasicTask(Task updatedTask) throws TaskOverlapException, TaskNotFoundException {
         if (!basicTasks.containsKey(updatedTask.getID())) {
-            return;
+            throw new TaskNotFoundException("Задача с id = " + updatedTask.getID() + " не найдена");
         }
 
         // При обновлении задачи проверяем наличие даты и времени начала
@@ -279,10 +278,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление подзадачи
     @Override
-    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException {
-        // Ничего не делаем, если нет подзадачи с таким идентификатором
+    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException, TaskNotFoundException {
         if (!subtasks.containsKey(updatedSubtask.getID())) {
-            return;
+            throw new TaskNotFoundException("Подзадача с id = " + updatedSubtask.getID() + " не найдена");
         }
 
         // При обновлении подзадачи проверяем наличие даты и времени начала
@@ -330,10 +328,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление эпика
     @Override
-    public void updateEpic(Epic updatedEpic) {
-        // Ничего не делаем, если нет эпика с таким идентификатором
+    public void updateEpic(Epic updatedEpic) throws TaskNotFoundException {
         if (!epics.containsKey(updatedEpic.getID())) {
-            return;
+            throw new TaskNotFoundException("Эпик с id = " + updatedEpic.getID() + " не найден");
         }
 
         epics.put(updatedEpic.getID(), updatedEpic);
