@@ -125,6 +125,9 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 }
             } catch (TaskNotFoundException taskNotFoundException) {
                 writeResponse(exchange, taskNotFoundException.getMessage(), 404);
+            } catch (TaskOverlapException taskOverlapException) {
+                writeResponse(exchange, "Ошибка при добавлении/обновлении эпика: "
+                        + taskOverlapException.getMessage(), 406);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении эпика: "
                         + exception.getMessage(), 500);
