@@ -18,13 +18,8 @@ public class Epic extends Task {
 
     // Конструктор класса Epic (для вновь создаваемых эпиков)
     public Epic(int id, String name, String description) {
-        this(id, name, description, TaskStatus.NEW);
-    }
-
-    // Конструктор класса Epic (для вновь создаваемых эпиков)
-    public Epic(int id, String name, String description, TaskStatus status) {
-        // startTime и duration - расчётные, здесь присваиваем некоторые значения по умолчанию
-        this(id, name, description, status, null, Duration.ZERO);
+        // status, startTime и duration - расчётные, здесь присваиваем некоторые значения по умолчанию
+        this(id, name, description, TaskStatus.NEW, null, Duration.ZERO);
     }
 
     // Конструктор класса Epic
