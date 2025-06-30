@@ -104,6 +104,8 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                     taskManager.updateSubtask(subtask);
                     writeResponse(exchange, "", 201);
                 }
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
             } catch (TaskOverlapException taskOverlapException) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении подзадачи: "
                         + taskOverlapException.getMessage(), 406);

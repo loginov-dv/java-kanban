@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import ru.yandex.practicum.exceptions.TaskNotFoundException;
+import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.managers.TaskManager;
 import ru.yandex.practicum.tasks.Epic;
 
@@ -122,6 +123,8 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 } else { // Передан epic с id - по спецификации нет опции обновления эпика
                     writeResponse(exchange, "Обновление эпика не поддерживается", 400);
                 }
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
             } catch (Exception exception) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении эпика: "
                         + exception.getMessage(), 500);

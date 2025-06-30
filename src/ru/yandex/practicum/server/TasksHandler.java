@@ -103,6 +103,8 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     taskManager.updateBasicTask(task);
                     writeResponse(exchange, "", 201);
                 }
+            } catch (TaskNotFoundException taskNotFoundException) {
+                writeResponse(exchange, taskNotFoundException.getMessage(), 404);
             } catch (TaskOverlapException taskOverlapException) {
                 writeResponse(exchange, "Ошибка при добавлении/обновлении задачи: "
                         + taskOverlapException.getMessage(), 406);
