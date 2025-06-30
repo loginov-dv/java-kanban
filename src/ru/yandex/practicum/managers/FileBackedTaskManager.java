@@ -169,8 +169,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description");
+        Epic epic2 = new Epic(2, "Epic", "description");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 

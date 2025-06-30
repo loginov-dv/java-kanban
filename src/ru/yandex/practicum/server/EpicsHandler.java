@@ -115,9 +115,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                 // Парсим эпик
                 Epic epic = gson.fromJson(body, Epic.class);
                 if (epic.getID() <= 0) { // Передан epic без id - создаём новый эпик в трекере
-                    // TODO: не нужно принимать статус
-                    epic = new Epic(taskManager.nextId(), epic.getName(), epic.getDescription(),
-                            epic.getStatus());
+                    epic = new Epic(taskManager.nextId(), epic.getName(), epic.getDescription());
 
                     taskManager.addEpic(epic);
                     writeResponse(exchange, "", 201);

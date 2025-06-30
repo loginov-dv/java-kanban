@@ -84,7 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW,
         // startTime будет null, а duration = 0
         epics.values().forEach(epic ->
-                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
+                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription())));
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(historyManager::removeTask);
         // Удаляем все подзадачи из множества

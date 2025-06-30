@@ -18,8 +18,8 @@ public class Main {
         inMemoryTaskManager.addBasicTask(task1);
         inMemoryTaskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(inMemoryTaskManager.nextId(), "Эпик 1", "Описание", TaskStatus.NEW);
-        Epic epic2 = new Epic(inMemoryTaskManager.nextId(), "Эпик 2", "Описание", TaskStatus.NEW);
+        Epic epic1 = new Epic(inMemoryTaskManager.nextId(), "Эпик 1", "Описание");
+        Epic epic2 = new Epic(inMemoryTaskManager.nextId(), "Эпик 2", "Описание");
         inMemoryTaskManager.addEpic(epic1);
         inMemoryTaskManager.addEpic(epic2);
 
