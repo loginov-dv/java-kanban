@@ -1,4 +1,4 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.managers;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -66,11 +66,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     manager.addSubtask(subtask);
                 } else {
                     manager.addBasicTask(parsedTask);
-                }
-
-                // Изменяем globalID в трекере для корректного присвоения идентификаторов новым задачам (не из файла)
-                if (parsedTask.getID() > manager.globalID) {
-                    manager.globalID = parsedTask.getID();
                 }
             }
         } catch (IOException | IllegalArgumentException | IndexOutOfBoundsException exception) {
@@ -174,8 +169,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         taskManager.addBasicTask(task1);
         taskManager.addBasicTask(task2);
 
-        Epic epic1 = new Epic(1, "Epic", "description", TaskStatus.NEW);
-        Epic epic2 = new Epic(2, "Epic", "description", TaskStatus.NEW);
+        Epic epic1 = new Epic(1, "Epic", "description");
+        Epic epic2 = new Epic(2, "Epic", "description");
         taskManager.addEpic(epic1);
         taskManager.addEpic(epic2);
 

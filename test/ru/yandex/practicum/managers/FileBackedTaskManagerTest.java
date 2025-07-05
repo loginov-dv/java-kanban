@@ -1,16 +1,16 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.managers;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.tasks.*;
 import ru.yandex.practicum.utils.TaskParser;
 
@@ -102,7 +102,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertEquals(1, taskManager.getAllSubtasks().size(), "Подзадача не была добавлена в трекер");
 
         // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = TaskParser.HEADER + "\n" +
@@ -151,7 +151,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager.updateBasicTask(updatedTask);
 
         // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = TaskParser.HEADER + "\n" +
@@ -197,7 +197,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager.removeBasicTaskById(task.getID());
 
         // Запрашиваем эпик, т.к. после добавления подзадачи его временные характеристики были пересчитаны
-        epic = taskManager.getEpicById(epic.getID()).get();
+        epic = taskManager.getEpicById(epic.getID());
 
         // Ожидаемое содержимое файла
         String contentExpected = TaskParser.HEADER + "\n" +
@@ -255,21 +255,33 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
                 "Подзадача не была добавлена в трекер");
 
         // Проверяем поля задачи (обычной)
-        Optional<Task> task = taskManagerFromFile.getBasicTaskById(1);
-        assertFalse(task.isEmpty(), "Задача с id = 1 отсутствует в трекере");
-        assertEquals("task", task.get().getName(), "Некорректное наименование задачи с id = 1");
-        assertEquals("description", task.get().getDescription(), "Некорректное описание задачи с id = 1");
-        assertEquals(TaskStatus.NEW, task.get().getStatus(), "Некорректный статус задачи с id = 1");
+        Task task = null;
+        try {
+            task = taskManagerFromFile.getBasicTaskById(1);
+        } catch (TaskNotFoundException exception) {
+            fail("Задача с id = 1 отсутствует в трекере");
+        }
+        assertEquals("task", task.getName(), "Некорректное наименование задачи с id = 1");
+        assertEquals("description", task.getDescription(), "Некорректное описание задачи с id = 1");
+        assertEquals(TaskStatus.NEW, task.getStatus(), "Некорректный статус задачи с id = 1");
         // Для подзадачи проверим id эпика
-        Optional<Subtask> subtask = taskManagerFromFile.getSubtaskById(3);
-        assertFalse(subtask.isEmpty(), "Поздадача с id = 3 отсутствует в трекере");
-        assertEquals(2, subtask.get().getEpicID(), "Некорректный id эпика у поздадачи с id = 3");
+        Subtask subtask = null;
+        try {
+            subtask = taskManagerFromFile.getSubtaskById(3);
+        } catch (TaskNotFoundException exception) {
+            fail("Поздадача с id = 3 отсутствует в трекере");
+        }
+        assertEquals(2, subtask.getEpicID(), "Некорректный id эпика у поздадачи с id = 3");
         // Для эпика проверим id его подзадач
-        Optional<Epic> epic = taskManagerFromFile.getEpicById(2);
-        assertFalse(epic.isEmpty(), "Эпик с id = 2 отсутствует в трекере");
-        assertEquals(1, epic.get().getSubtaskIDs().size(),
+        Epic epic = null;
+        try {
+            epic = taskManagerFromFile.getEpicById(2);
+        } catch (TaskNotFoundException exception) {
+            fail("Эпик с id = 2 отсутствует в трекере");
+        }
+        assertEquals(1, epic.getSubtaskIDs().size(),
                 "Некорректное количество подзадач у эпика с id = 2");
-        assertEquals(3, epic.get().getSubtaskIDs().getFirst(),
+        assertEquals(3, epic.getSubtaskIDs().getFirst(),
                 "Некорректный номер подзадачи у эпика с id = 2");
     }
 
@@ -341,12 +353,16 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
         // Проверяем равенство полей отдельных задач
         for (Task originTask : taskManager.getAllBasicTasks()) {
-            Optional<Task> anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
-            assertFalse(anotherTask.isEmpty(), "Не найдена задача с таким id в трекере, созданном из файла");
-            assertEquals(originTask.getName(), anotherTask.get().getName(), "Некорректное наименование задачи");
-            assertEquals(originTask.getDescription(), anotherTask.get().getDescription(),
+            Task anotherTask = null;
+            try {
+                anotherTask = newTaskManager.getBasicTaskById(originTask.getID());
+            } catch (TaskNotFoundException exception) {
+                fail("Не найдена задача с таким id в трекере, созданном из файла");
+            }
+            assertEquals(originTask.getName(), anotherTask.getName(), "Некорректное наименование задачи");
+            assertEquals(originTask.getDescription(), anotherTask.getDescription(),
                     "Некорректное описание задачи");
-            assertEquals(originTask.getStatus(), anotherTask.get().getStatus(), "Некорректный статус задачи");
+            assertEquals(originTask.getStatus(), anotherTask.getStatus(), "Некорректный статус задачи");
         }
     }
 

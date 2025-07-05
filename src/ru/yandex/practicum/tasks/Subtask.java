@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static ru.yandex.practicum.utils.CSVUtils.escapeSpecialCharacters;
+import static ru.yandex.practicum.utils.CsvUtils.escapeSpecialCharacters;
 
 // Класс для описания подзадачи в рамках эпика
 public class Subtask extends Task {
@@ -19,12 +19,14 @@ public class Subtask extends Task {
         if (!Objects.equals(epicID, id)) {
             this.epicID = epicID;
         }
+        type = TaskType.SUBTASK;
     }
 
     // Конструктор копирования класса Subtask
     protected Subtask(Subtask otherSubtask) {
         super(otherSubtask);
         this.epicID = otherSubtask.epicID;
+        this.type = TaskType.SUBTASK;
     }
 
     // Получить id эпика

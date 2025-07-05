@@ -1,5 +1,6 @@
-package ru.yandex.practicum.taskManagement;
+package ru.yandex.practicum.managers;
 
+import ru.yandex.practicum.exceptions.TaskNotFoundException;
 import ru.yandex.practicum.exceptions.TaskOverlapException;
 import ru.yandex.practicum.tasks.*;
 
@@ -83,7 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
         // Пересоздаём все эпики с пустыми списками id подзадач и статусом NEW,
         // startTime будет null, а duration = 0
         epics.values().forEach(epic ->
-                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription(), TaskStatus.NEW)));
+                updateEpic(new Epic(epic.getID(), epic.getName(), epic.getDescription())));
         // Удаляем все подзадачи из истории
         subtasks.keySet().forEach(historyManager::removeTask);
         // Удаляем все подзадачи из множества
@@ -109,29 +110,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение задачи (обычной) по id
     @Override
-    public Optional<Task> getBasicTaskById(int id) {
+    public Task getBasicTaskById(int id) throws TaskNotFoundException {
+        if (!basicTasks.containsKey(id)) {
+            throw new TaskNotFoundException("Задача с id = " + id + " не найдена");
+        }
+
         // Добавляем задачу в историю просмотра
         addToHistory(basicTasks.get(id));
 
-        return Optional.ofNullable(basicTasks.get(id));
+        return basicTasks.get(id);
     }
 
     // Получение подзадачи по id
     @Override
-    public Optional<Subtask> getSubtaskById(int id) {
+    public Subtask getSubtaskById(int id) throws TaskNotFoundException {
+        if (!subtasks.containsKey(id)) {
+            throw new TaskNotFoundException("Подзадача с id = " + id + " не найдена");
+        }
+
         // Добавляем подзадачу в историю просмотра
         addToHistory(subtasks.get(id));
 
-        return Optional.ofNullable(subtasks.get(id));
+        return subtasks.get(id);
     }
 
     // Получение эпика по id
     @Override
-    public Optional<Epic> getEpicById(int id) {
+    public Epic getEpicById(int id) throws TaskNotFoundException {
+        if (!epics.containsKey(id)) {
+            throw new TaskNotFoundException("Эпик с id = " + id + " не найден");
+        }
+
         // Добавляем эпик в историю просмотра
         addToHistory(epics.get(id));
 
-        return Optional.ofNullable(epics.get(id));
+        return epics.get(id);
     }
 
     // Добавление новой задачи (обычной)
@@ -155,6 +168,11 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             // Если параметр не задан, то добавляем задачу только в мапу
             basicTasks.put(task.getID(), task);
+        }
+
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (task.getID() > globalID) {
+            globalID = task.getID();
         }
     }
 
@@ -181,9 +199,15 @@ public class InMemoryTaskManager implements TaskManager {
             subtasks.put(subtask.getID(), subtask);
         }
 
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (subtask.getID() > globalID) {
+            globalID = subtask.getID();
+        }
+
         // Обновляем эпик, к которому относится подзадача
         if (subtask.getEpicID() == null) {
             return;
+            // TODO: мб исключение?
         }
 
         Epic epic = epics.get(subtask.getEpicID());
@@ -215,14 +239,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addEpic(Epic epic) {
         epics.put(epic.getID(), epic);
+
+        // Изменяем globalID для корректного присвоения идентификаторов новым задачам
+        if (epic.getID() > globalID) {
+            globalID = epic.getID();
+        }
     }
 
     // Обновление задачи (обычной)
     @Override
-    public void updateBasicTask(Task updatedTask) throws TaskOverlapException {
-        // Ничего не делаем, если нет задачи с таким идентификатором
+    public void updateBasicTask(Task updatedTask) throws TaskOverlapException, TaskNotFoundException {
         if (!basicTasks.containsKey(updatedTask.getID())) {
-            return;
+            throw new TaskNotFoundException("Задача с id = " + updatedTask.getID() + " не найдена");
         }
 
         // При обновлении задачи проверяем наличие даты и времени начала
@@ -250,10 +278,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление подзадачи
     @Override
-    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException {
-        // Ничего не делаем, если нет подзадачи с таким идентификатором
+    public void updateSubtask(Subtask updatedSubtask) throws TaskOverlapException, TaskNotFoundException {
         if (!subtasks.containsKey(updatedSubtask.getID())) {
-            return;
+            throw new TaskNotFoundException("Подзадача с id = " + updatedSubtask.getID() + " не найдена");
         }
 
         // При обновлении подзадачи проверяем наличие даты и времени начала
@@ -301,10 +328,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление эпика
     @Override
-    public void updateEpic(Epic updatedEpic) {
-        // Ничего не делаем, если нет эпика с таким идентификатором
+    public void updateEpic(Epic updatedEpic) throws TaskNotFoundException {
         if (!epics.containsKey(updatedEpic.getID())) {
-            return;
+            throw new TaskNotFoundException("Эпик с id = " + updatedEpic.getID() + " не найден");
         }
 
         epics.put(updatedEpic.getID(), updatedEpic);
@@ -478,6 +504,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Возвращает список задач и подзадач в порядке приоритета (от более ранней даты начала к более поздней)
+    @Override
     public List<Task> getPrioritizedTasks() {
         return new ArrayList<>(prioritySet);
     }

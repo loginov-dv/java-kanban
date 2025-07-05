@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Вспомогательный класс для работы со строками
-public final class CSVUtils {
+public final class CsvUtils {
 
     // Метод для экранирования запятых и кавычек
     public static String escapeSpecialCharacters(String data) {
